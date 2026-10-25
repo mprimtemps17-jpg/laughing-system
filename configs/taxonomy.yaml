@@ -1,0 +1,39 @@
+# 摩擦の要因分類（LLMが判定時に選ぶ選択肢）
+# 先行研究に対応づけてある。研究が進んだら、追加・統合・名前の変更をしてよい。
+# 変更したら新しい実行として記録し、古い結果と直接比べないこと。
+
+causes:
+  - id: common_ground_gap
+    label: 共有知識（共通基盤）のずれ
+    description: 相手が知らないことを知っている前提で話す、または相手が知っていることを知らない前提で話す
+    source: Clark & Wilkes-Gibbs (1986) 共同行為としての参照 / FANToM (Kim et al., 2023) 情報の非対称性
+
+  - id: private_context_unknown
+    label: 相手の個人的事情を知らない・考慮しない
+    description: 相手だけが抱えている事情（体調、悩み、過去の出来事など）を知らない、または知っていても考慮しないまま発言する
+    source: FANToM (Kim et al., 2023) / SymbolicToM (Sclar et al., 2023) 人物ごとの信念状態
+
+  - id: relevance_mismatch
+    label: 何を重要とみなすかのずれ
+    description: 話題や出来事のどこを大事だと感じるか（関連性）が二人の間で違う
+    source: シュッツの「レリヴァンス体系」 / 紅林 (1989)
+
+  - id: intent_misread
+    label: 発話意図・真意の読み違い
+    description: 冗談・遠回しな表現・本音と建前などで、言葉どおりの意味と意図がずれて受け取られる（メタ・コミュニケーションの失敗）
+    source: 紅林 (1989) 知識の否定可能性とメタ・コミュニケーション
+
+  - id: emotional_neglect
+    label: 感情への配慮不足
+    description: 相手の感情（落ち込み、不安、喜びなど）に気づかない、または軽く扱う
+    source: 研究者の問題意識（無神経な発言）
+
+  - id: relationship_norm_gap
+    label: 関係性・役割の前提のずれ
+    description: 二人の関係の近さや役割（友人、先輩後輩、恋人など）について、許される言い方の感覚が違う
+    source: 清水・大坊 (2008) 関係性の間主観的な捉え方
+
+  - id: other
+    label: その他
+    description: 上のどれにも当てはまらない要因（rationale に具体的に書く）
+    source: ""

@@ -1,0 +1,44 @@
+# 本番用（Claude API）。実行前に必ず:
+#   1. export ANTHROPIC_API_KEY=...
+#   2. python -m frictionlab validate configs/experiment_claude.yaml で呼び出し回数を確認
+#   3. limit: 3 などで少数だけ試してから全件を実行
+
+name: claude_main
+data: data/examples/sample_dialogues.jsonl   # 自分のデータに差し替える
+taxonomy: configs/taxonomy.yaml
+baseline: baseline
+
+conditions:
+  - name: baseline
+    description: 第三者視点・ログと状況のみ
+  - name: observer_private_both
+    description: 第三者視点 + 両者の私的情報
+    private_info: both
+  - name: pov_A
+    description: A本人の視点
+    viewpoint: A
+  - name: pov_B
+    description: B本人の視点
+    viewpoint: B
+  - name: pov_A_private
+    description: A本人の視点 + Aだけが知る情報
+    viewpoint: A
+    private_info: A
+    compare_to: pov_A
+  - name: pov_B_private
+    description: B本人の視点 + Bだけが知る情報
+    viewpoint: B
+    private_info: B
+    compare_to: pov_B
+
+model:
+  backend: anthropic
+  name: claude-opus-5-5
+  effort: medium
+  max_tokens: 16000
+  use_fallbacks: true
+  max_workers: 4
+
+repeats: 3
+swap_speakers: true
+limit: 3                 # 試運転。全件実行するときは消す

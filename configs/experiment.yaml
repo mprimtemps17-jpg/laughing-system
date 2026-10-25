@@ -1,0 +1,66 @@
+# 実験設定（試運転用：mockバックエンド）
+# 本番は configs/experiment_claude.yaml をコピーして使う
+
+name: pilot_mock
+data: data/examples/sample_dialogues.jsonl
+taxonomy: configs/taxonomy.yaml
+
+# 比較の基準。ほかの条件は「基準から要因を1つだけ変えたもの」にするのが原則
+baseline: baseline
+
+conditions:
+  # 先行研究の基本形：第三者として会話ログだけを読んで判定
+  - name: baseline
+    description: 第三者視点・ログと状況のみ
+    viewpoint: observer
+    private_info: none
+    setting: include
+
+  # 要因1: 片方だけが知る情報を与える（第三者のまま）
+  - name: observer_private_A
+    description: 第三者視点 + Aだけが知る情報
+    viewpoint: observer
+    private_info: A
+  - name: observer_private_B
+    description: 第三者視点 + Bだけが知る情報
+    viewpoint: observer
+    private_info: B
+  - name: observer_private_both
+    description: 第三者視点 + 両者の私的情報（全知の観察者）
+    viewpoint: observer
+    private_info: both
+
+  # 要因2: 視点を本人に移す（私的情報なし）
+  - name: pov_A
+    description: A本人の視点
+    viewpoint: A
+  - name: pov_B
+    description: B本人の視点
+    viewpoint: B
+
+  # 要因1+2: 本人の視点 + 本人だけが知る情報（先行研究の「主観に立つ」条件）
+  # baseline とは2要因違うので、compare_to で1要因違いの pov_A / pov_B と比べる
+  - name: pov_A_private
+    description: A本人の視点 + Aだけが知る情報
+    viewpoint: A
+    private_info: A
+    compare_to: pov_A
+  - name: pov_B_private
+    description: B本人の視点 + Bだけが知る情報
+    viewpoint: B
+    private_info: B
+    compare_to: pov_B
+
+  # 要因3: 共有状況を伏せる
+  - name: no_setting
+    description: 第三者視点・状況説明なし
+    setting: omit
+
+model:
+  backend: mock          # mock | anthropic
+  name: claude-opus-5-5
+  effort: medium
+  max_workers: 4
+
+repeats: 2               # 同じ入力を何回判定するか
+swap_speakers: true      # A/Bラベルを入れ替えた版も判定する
