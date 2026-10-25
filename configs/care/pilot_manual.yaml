@@ -1,0 +1,20 @@
+# 主実験：APIを使わず、チャット画面（ChatGPT・Claudeなど）に手で貼り付けて実行する。
+#   1. python -m frictionlab care run configs/care/pilot_manual.yaml
+#      → results/<run>/manual/ に *.prompt.md ができる
+#   2. 各 prompt.md を「新しいチャット」に貼り付け（履歴・メモリの影響を避けるため毎回新規）、
+#      返ってきたJSONを同じ名前の *.response.txt に保存
+#   3. python -m frictionlab care run configs/care/pilot_manual.yaml --resume results/<run>
+#      （B・Cは「整理→判定」の2段階なので、2〜3をもう一度繰り返す）
+# 使ったサービス・モデル名・設定は model.name と notes に書いて記録する。
+
+name: care_pilot_manual
+data: data/care/v0.2_pilot.jsonl
+criteria: configs/care/criteria_v0.2_time.md
+conditions: [A_direct, B_knowledge]
+
+model:
+  backend: manual
+  name: "（使ったサービスとモデル名を書く）"
+  max_workers: 1
+
+repeats: 1

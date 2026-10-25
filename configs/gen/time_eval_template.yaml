@@ -1,0 +1,24 @@
+# v0.2 の評価用「別の8場面×3変種＝24件」の候補をテンプレートで作る（API不要）。
+#   python -m frictionlab gen plan configs/gen/time_eval_template.yaml   # 組み合わせを確認
+#   python -m frictionlab gen run  configs/gen/time_eval_template.yaml
+#   python -m frictionlab gen show data/generated/time_eval_template.jsonl
+# 作成後、人間が独立に判定してから実験に使う。モデルの結果を見てから例を入れ替えない。
+
+name: time_eval_template
+output: data/generated/time_eval_template.jsonl
+method: template
+seed: 1
+id_prefix: T
+split: eval
+n_scenes: 8
+
+domains: [time]
+# 情報伝達の経路を読む必要のある例を混ぜる（v0.2：本番では経路を読む例を入れる）
+routes_known: [direct, group_chat, third_party]
+routes_unknown: [private_only, absent, memo]
+acts: [decide, propose]
+tones: [casual, polite]
+variants: [known_conflict, known_compatible, unknown_conflict]
+
+# 予備（P1 通話・P2 打合せ）と同じ活動を評価に使わない
+avoid_scenes_in: [data/care/v0.2_pilot.jsonl]

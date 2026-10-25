@@ -38,6 +38,7 @@ class Dialogue(BaseModel):
     private_info: dict[Speaker, list[str]] = Field(default_factory=dict)  # 片方だけが知る情報
     turns: list[Turn]
     human_label: HumanLabel | None = None
+    intended: HumanLabel | None = None  # 生成器・作成者が意図した答え（正解ではない）
     source: str = "unknown"  # データの出所（example / corpus名 / self-made など）
     notes: str = ""
 

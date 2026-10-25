@@ -13,6 +13,8 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, Field, model_validator
 
+from ..llm import ModelConfig
+
 # 各要因が取りうる値
 Viewpoint = Literal["observer", "A", "B"]  # 誰の立場で判定するか
 PrivateInfo = Literal["none", "A", "B", "both"]  # 誰の「片方だけが知る情報」を読ませるか
@@ -41,19 +43,10 @@ class Condition(BaseModel):
         return self.private_info in (other, "both")
 
 
-class ModelConfig(BaseModel):
-    backend: Literal["anthropic", "mock"] = "mock"
-    name: str = "claude-opus-5-5"
-    effort: Literal["low", "medium", "high", "xhigh", "max"] = "medium"
-    max_tokens: int = 16000
-    use_fallbacks: bool = True  # 安全分類器による拒否時に別モデルで再実行（対応モデルのみ）
-    max_workers: int = 4  # 並列リクエスト数
-
-
 class ExperimentConfig(BaseModel):
     name: str
     data: str
-    taxonomy: str = "configs/taxonomy.yaml"
+    taxonomy: str = "configs/friction/taxonomy.yaml"
     baseline: str = "baseline"
     conditions: list[Condition]
     model: ModelConfig = Field(default_factory=ModelConfig)

@@ -1,0 +1,28 @@
+# Claude に場面を作らせる（自然でバリエーションが多い。自動点検＋人間の確認が必要）。
+#   export ANTHROPIC_API_KEY=...
+#   python -m frictionlab gen plan configs/gen/llm_care.yaml
+#   python -m frictionlab gen run  configs/gen/llm_care.yaml
+# APIがない場合は model.backend を manual にすると、チャット画面に貼るプロンプトが書き出される。
+
+name: llm_care
+output: data/generated/llm_care.jsonl
+method: llm
+format: care
+seed: 3
+id_prefix: L
+split: dev
+n_scenes: 10
+
+# テンプレートにない種類もそのまま書ける（例：「家事の分担」「体調」）
+domains: [time, budget, dietary, access, prior_knowledge, sharing_scope]
+variants: [known_conflict, known_compatible, unknown_conflict]
+min_turns: 2
+max_turns: 6
+
+model:
+  backend: anthropic
+  name: claude-opus-5-5
+  effort: medium
+  max_workers: 1
+
+extra_instructions: ""

@@ -5,15 +5,15 @@ from pathlib import Path
 import pytest
 import yaml
 
-from frictionlab.analysis import analyze
-from frictionlab.config import Condition, config_warnings, load_experiment, load_taxonomy
-from frictionlab.data import Dialogue, load_dialogues
-from frictionlab.prompts import build_prompt
-from frictionlab.runner import parse_judgment, run_experiment
+from frictionlab.friction.analysis import analyze
+from frictionlab.friction.config import Condition, config_warnings, load_experiment, load_taxonomy
+from frictionlab.friction.data import Dialogue, load_dialogues
+from frictionlab.friction.prompts import build_prompt
+from frictionlab.friction.runner import parse_judgment, run_experiment
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "data/examples/sample_dialogues.jsonl"
-TAX = ROOT / "configs/taxonomy.yaml"
+DATA = ROOT / "data/friction_examples/sample_dialogues.jsonl"
+TAX = ROOT / "configs/friction/taxonomy.yaml"
 
 
 def test_sample_data_loads():
@@ -55,7 +55,7 @@ def test_swap_relabels_same_person():
 
 
 def test_config_warns_on_multi_factor_change():
-    cfg = load_experiment(ROOT / "configs/experiment.yaml")
+    cfg = load_experiment(ROOT / "configs/friction/experiment.yaml")
     assert config_warnings(cfg) == []
     cfg.conditions.append(Condition(name="bad", viewpoint="A", private_info="B"))
     warns = config_warnings(cfg)
@@ -66,7 +66,7 @@ def test_config_warns_on_multi_factor_change():
 def test_end_to_end_mock(tmp_path, monkeypatch):
     monkeypatch.chdir(ROOT)
     cfg_path = tmp_path / "exp.yaml"
-    raw = yaml.safe_load((ROOT / "configs/experiment.yaml").read_text(encoding="utf-8"))
+    raw = yaml.safe_load((ROOT / "configs/friction/experiment.yaml").read_text(encoding="utf-8"))
     raw["repeats"] = 1
     cfg_path.write_text(yaml.safe_dump(raw, allow_unicode=True), encoding="utf-8")
     cfg = load_experiment(cfg_path)

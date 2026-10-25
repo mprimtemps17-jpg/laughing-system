@@ -1,4 +1,4 @@
-# データ形式
+# 探索実験のデータ形式（会話全体の摩擦）
 
 会話データは JSONL（1行に1会話のJSON）。`//` で始まる行と空行は無視される。
 
@@ -37,13 +37,13 @@
 | `turns` | ○ | 発話の列。ターン番号は1から数える |
 | `human_label` | | 人間が付けた正解。ないと妥当性の指標（正解率など）は計算されない |
 | `human_label.severity` | | 0=なし、1=軽い違和感、2=明らかな気まずさ・不快、3=深刻 |
-| `human_label.causes` | | `configs/taxonomy.yaml` のID |
+| `human_label.causes` | | `configs/friction/taxonomy.yaml` のID |
 | `human_label.perceived_by` | | 視点別の正解。A視点の条件はAの、B視点の条件はBのラベルと比べる |
 | `source` | | データの出所（コーパス名、自作など） |
 
 ## フォルダ
 
-- `examples/` … 動作確認用の架空の会話（8件）。ラベルは環境作成時に付けた仮のもので、**研究データとして使わないこと**。
+- `sample_dialogues.jsonl` … 動作確認用の架空の会話（8件）。ラベルは環境作成時に付けた仮のもので、**研究データとして使わないこと**。
 - 実データは `data/raw/`（元データ）と `data/processed/`（この形式に変換したもの）に置くことをおすすめする。個人が特定できる会話は `.gitignore` で Git から除外してある。
 
 ## ラベル付けのコツ

@@ -1,0 +1,19 @@
+# 主実験：予備6例を Claude API で実行する。
+#   export ANTHROPIC_API_KEY=...
+#   python -m frictionlab care validate configs/care/pilot_claude.yaml   # 呼び出し回数の確認
+#   python -m frictionlab care run      configs/care/pilot_claude.yaml
+
+name: care_pilot_claude
+data: data/care/v0.2_pilot.jsonl
+criteria: configs/care/criteria_v0.2_time.md
+conditions: [A_direct, B_knowledge]
+
+model:
+  backend: anthropic
+  name: claude-opus-5-5   # 実験中はモデル・設定を固定する
+  effort: medium
+  max_tokens: 16000
+  use_fallbacks: true
+  max_workers: 1          # 1 にすると記録された交替順のとおりに実行される
+
+repeats: 1

@@ -1,0 +1,12 @@
+# v0.1 の開発用20件（D01〜D20）。ラベルは v0.1 の3分類（あり/なし/判断保留）のまま。
+# v0.2 の4分類とは異なるので、「判断保留」の例は集計から外れる（変更する場合は再点検して履歴を残す）。
+
+name: care_dev_v01_mock
+data: data/care/v0.1_dev.jsonl
+criteria: configs/care/criteria_v0.3_general_draft.md
+conditions: [A_direct, B_knowledge, C_general]
+
+model:
+  backend: mock
+
+repeats: 1

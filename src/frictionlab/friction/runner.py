@@ -17,10 +17,10 @@ from pathlib import Path
 
 import yaml
 
-from . import __version__
+from .. import __version__
 from .config import Condition, ExperimentConfig, config_warnings, load_taxonomy
 from .data import Dialogue, load_dialogues
-from .llm import call_with_retry, make_backend
+from ..llm import PendingResponse, call_with_retry, check_result, make_backend
 from .prompts import PROMPT_VERSION, build_prompt, output_schema, prompt_hash
 
 
@@ -110,6 +110,8 @@ def run_experiment(
     if cfg.model.backend == "mock":
         print("[注意] mockバックエンドです。結果はランダムで研究上の意味はありません。")
 
+    if cfg.model.backend == "manual" and not cfg.model.manual_dir:
+        cfg.model.manual_dir = str(out / "manual")
     backend = make_backend(cfg.model)
     lock = threading.Lock()
 
@@ -127,23 +129,25 @@ def run_experiment(
             "error": None,
         }
         try:
-            res = call_with_retry(lambda: backend.judge(system, user, schema, seed=job.key))
+            res = call_with_retry(lambda: backend.generate_json(system, user, schema, seed=job.key))
             rec.update(model=res.model, stop_reason=res.stop_reason, usage=res.usage, raw=res.text)
-            if res.stop_reason == "refusal":
-                rec["error"] = "refusal"
-            elif res.stop_reason == "max_tokens":
-                rec["error"] = "max_tokens"
-            else:
+            rec["error"] = check_result(res)
+            if rec["error"] is None:
                 rec["judgment"] = parse_judgment(res.text, job.swapped)
+        except PendingResponse:
+            return None
         except Exception as e:
             rec["error"] = f"{type(e).__name__}: {e}"
         return rec
 
-    n_err = 0
+    n_err = n_pending = 0
     with ThreadPoolExecutor(max_workers=cfg.model.max_workers) as ex, path.open("a", encoding="utf-8") as f:
         futures = [ex.submit(work, j) for j in jobs]
         for i, fut in enumerate(as_completed(futures), 1):
             rec = fut.result()
+            if rec is None:
+                n_pending += 1
+                continue
             n_err += rec["error"] is not None
             with lock:
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
@@ -151,6 +155,11 @@ def run_experiment(
             if i % 10 == 0 or i == len(jobs):
                 print(f"  {i}/{len(jobs)} 完了（エラー {n_err}）")
 
+    if n_pending:
+        print(
+            f"[manual] {n_pending} 件の回答待ちです。{cfg.model.manual_dir}/ の *.prompt.md を貼り付けて、"
+            f"回答を同名の *.response.txt に保存し、--resume {out} を付けて再実行してください。"
+        )
     if n_err:
         print(f"[注意] {n_err} 件がエラーでした。同じコマンドに --resume {out} を付けると再実行します。")
     return out

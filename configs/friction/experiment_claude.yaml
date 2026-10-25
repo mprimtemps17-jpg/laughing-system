@@ -1,11 +1,11 @@
 # 本番用（Claude API）。実行前に必ず:
 #   1. export ANTHROPIC_API_KEY=...
-#   2. python -m frictionlab validate configs/experiment_claude.yaml で呼び出し回数を確認
+#   2. python -m frictionlab friction validate configs/friction/experiment_claude.yaml で呼び出し回数を確認
 #   3. limit: 3 などで少数だけ試してから全件を実行
 
 name: claude_main
-data: data/examples/sample_dialogues.jsonl   # 自分のデータに差し替える
-taxonomy: configs/taxonomy.yaml
+data: data/friction_examples/sample_dialogues.jsonl   # 自分のデータに差し替える
+taxonomy: configs/friction/taxonomy.yaml
 baseline: baseline
 
 conditions:

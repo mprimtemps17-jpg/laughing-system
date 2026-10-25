@@ -1,0 +1,18 @@
+# いろいろな種類の制約を含む会話をまとめて作る（拡張・開発用。API不要）。
+# 予定以外（予算・食事・手段・前提知識）は v0.3 の一般化した判定基準の案で判定する想定。
+
+name: mixed_template
+output: data/generated/mixed_template.jsonl
+method: template
+seed: 7
+id_prefix: M
+split: dev
+n_scenes: 30
+
+domains: [time, budget, dietary, access, prior_knowledge]
+routes_known: [direct, group_chat, third_party]
+routes_unknown: [private_only, absent, memo]
+acts: [decide, propose]
+tones: [casual, polite]
+# known_updated：制約が後から解消された境界対照（time と budget のみ対応）
+variants: [known_conflict, known_compatible, unknown_conflict, known_updated]

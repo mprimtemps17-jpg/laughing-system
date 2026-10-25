@@ -1,0 +1,16 @@
+# 主実験：予備6例（P1・P2）を mock で動かす試運転用。
+# 本番は pilot_claude.yaml（Claude API）か pilot_manual.yaml（チャット画面に手で貼る）を使う。
+
+name: care_pilot_mock
+data: data/care/v0.2_pilot.jsonl
+criteria: configs/care/criteria_v0.2_time.md
+
+# A：直接判定 / B：人物別の知識整理→判定 / C：一般的な整理→判定（要因を検討する段階で追加）
+conditions: [A_direct, B_knowledge, C_general]
+
+model:
+  backend: mock
+  name: claude-opus-5-5
+  effort: medium
+
+repeats: 1     # まず各1回で探索（安定性は未確認と明記する）

@@ -1,0 +1,16 @@
+# 探索実験（会話全体の摩擦）用の日常会話を Claude に作らせる。
+# 出力は data/friction_examples と同じ形式。作成意図は intended に入り、human_label は空。
+
+name: llm_friction
+output: data/generated/llm_friction.jsonl
+method: llm
+format: friction
+seed: 5
+id_prefix: F
+n_scenes: 12
+friction_ratio: 0.7   # 摩擦ありを意図する会話の割合（残りは「私的な事情はあるが摩擦なし」）
+
+model:
+  backend: anthropic
+  name: claude-opus-5-5
+  effort: medium

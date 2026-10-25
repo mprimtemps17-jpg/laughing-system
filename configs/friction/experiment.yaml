@@ -1,9 +1,9 @@
 # 実験設定（試運転用：mockバックエンド）
-# 本番は configs/experiment_claude.yaml をコピーして使う
+# 本番は configs/friction/experiment_claude.yaml をコピーして使う
 
 name: pilot_mock
-data: data/examples/sample_dialogues.jsonl
-taxonomy: configs/taxonomy.yaml
+data: data/friction_examples/sample_dialogues.jsonl
+taxonomy: configs/friction/taxonomy.yaml
 
 # 比較の基準。ほかの条件は「基準から要因を1つだけ変えたもの」にするのが原則
 baseline: baseline
