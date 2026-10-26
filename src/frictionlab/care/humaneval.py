@@ -1,6 +1,6 @@
 """人間による独立判定の支援。
 
-1. export: 評価者ごとの評価票（CSV, Excel用 UTF-8 BOM）を作る。場面ID・変種・作成意図ラベルは含めない
+1. export: 評価者ごとの評価票（.xlsx は workbook.py、.csv は Excel用 UTF-8 BOM）を作る。場面ID・変種・作成意図ラベルは含めない
 2. import: 記入済みの評価票を読み、データの human_labels に取り込む
 3. agreement: 評価者間の一致率・κ・不一致例を出し、全員一致の例だけ gold_label の候補にする
 """
@@ -50,7 +50,10 @@ def export_sheet(items: list[CareItem], out_csv: str | Path, seed: int = 0) -> P
 
 
 def import_sheet(items: list[CareItem], sheet: str | Path, annotator: str) -> tuple[list[CareItem], list[str]]:
-    df = pd.read_csv(sheet, encoding="utf-8-sig", dtype=str).fillna("")
+    if str(sheet).endswith(".xlsx"):
+        df = pd.read_excel(sheet, sheet_name="評価票", dtype=str).fillna("").rename(columns={"ID": "id"})
+    else:
+        df = pd.read_csv(sheet, encoding="utf-8-sig", dtype=str).fillna("")
     by_id = {it.id: it for it in items}
     problems = []
     for _, row in df.iterrows():

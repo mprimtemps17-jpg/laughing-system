@@ -80,6 +80,8 @@ def test_manual_backend_two_stage(tmp_path, monkeypatch):
 
 def test_human_eval_roundtrip(tmp_path):
     items = load_items(PILOT)
+    for it in items:  # 実データの判定（本人など）は除いて試す
+        it.human_labels.clear()
     sheet = export_sheet(items, tmp_path / "s.csv", seed=3)
     df = pd.read_csv(sheet, encoding="utf-8-sig", dtype=str)
     assert "intended" not in " ".join(df.columns) and "scene" not in " ".join(df.columns)
@@ -91,3 +93,22 @@ def test_human_eval_roundtrip(tmp_path):
     assert problems == []
     _, table = agreement(items)
     assert table.unanimous.all()
+
+
+def test_xlsx_roundtrip(tmp_path):
+    from openpyxl import load_workbook
+
+    from frictionlab.care.workbook import export_workbook
+
+    items = load_items(PILOT)
+    crit = (ROOT / "configs/care/criteria_v0.2_time.md").read_text(encoding="utf-8")
+    path = export_workbook(items, tmp_path / "s.xlsx", crit, seed=2)
+    wb = load_workbook(path)
+    assert wb.sheetnames == ["はじめに", "判定基準", "評価票", "作業記録"]
+    flat = " ".join(str(c.value) for row in wb["評価票"].iter_rows() for c in row if c.value)
+    assert not any(it.intended_reason in flat for it in items) and "known_" not in flat
+    for r in range(2, 8):
+        wb["評価票"].cell(row=r, column=5, value="なし")
+    wb.save(path)
+    items, problems = import_sheet(items, path, "z")
+    assert problems == [] and all(it.human_labels["z"] == "なし" for it in items)

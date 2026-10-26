@@ -101,9 +101,17 @@ def human_export(args) -> int:
     items = load_items(args.data)
     if args.split:
         items = [it for it in items if it.split == args.split]
-    out = export_sheet(items, args.out, seed=args.seed)
-    print(f"評価票: {out}（{len(items)} 件）。提示順の記録: {out.with_suffix('.order.txt')}")
-    print("評価者には評価票と判定基準（configs/care/criteria_*.md）だけを渡してください。")
+    if args.out.endswith(".xlsx"):
+        from .care.workbook import export_workbook
+
+        criteria = Path(args.criteria).read_text(encoding="utf-8")
+        out = export_workbook(items, args.out, criteria, seed=args.seed)
+        print(f"評価票（Excel）: {out}（{len(items)} 件、判定基準シート付き）")
+    else:
+        out = export_sheet(items, args.out, seed=args.seed)
+        print(f"評価票: {out}（{len(items)} 件）")
+        print("評価者には評価票と判定基準（configs/care/criteria_*.md）だけを渡してください。")
+    print(f"提示順の記録（評価者には渡さない）: {out.with_suffix('.order.txt')}")
     return 0
 
 
@@ -255,6 +263,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--out", required=True)
     s.add_argument("--seed", type=int, default=0, help="提示順を決める乱数の種（評価者ごとに変えてもよい）")
     s.add_argument("--split", choices=["pilot", "eval", "dev"])
+    s.add_argument("--criteria", default="configs/care/criteria_v0.2_time.md", help="xlsx に載せる判定基準")
     s.set_defaults(func=human_export)
     s = human.add_parser("import", help="記入済みの評価票を取り込む")
     s.add_argument("data")
