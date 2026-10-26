@@ -2,3 +2,4 @@
 {"order": 2, "id": "P2-1", "annotator": "本人", "label": "あり", "evidence": "AはBの事情を知っている", "reason": "事情を知っているにもかかわらず、予定のある時間にブッキングさせてきているから"}
 {"order": 3, "id": "P1-1", "annotator": "本人", "label": "あり", "evidence": "直前の会話でBは20時に予定が入っているのをAは聞いている", "reason": ""}
 {"order": 4, "id": "P2-3", "annotator": "本人", "label": "判定対象外", "evidence": "Bに予定がある事をAは知らない", "reason": "だが、日中の予定を何も確認しないのもいかがなものかと感じる"}
+{"order": 5, "id": "P1-2", "annotator": "本人", "label": "なし", "evidence": "", "reason": "相手の情報を正しく理解し、文脈に合った質問をBに対して打診できている"}
