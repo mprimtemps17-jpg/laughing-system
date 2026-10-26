@@ -105,7 +105,7 @@ def human_export(args) -> int:
         from .care.workbook import export_workbook
 
         criteria = Path(args.criteria).read_text(encoding="utf-8")
-        out = export_workbook(items, args.out, criteria, seed=args.seed)
+        out = export_workbook(items, args.out, criteria, seed=args.seed, annotator=args.annotator)
         print(f"評価票（Excel）: {out}（{len(items)} 件、判定基準シート付き）")
     else:
         out = export_sheet(items, args.out, seed=args.seed)
@@ -264,6 +264,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--seed", type=int, default=0, help="提示順を決める乱数の種（評価者ごとに変えてもよい）")
     s.add_argument("--split", choices=["pilot", "eval", "dev"])
     s.add_argument("--criteria", default="configs/care/criteria_v0.2_time.md", help="xlsx に載せる判定基準")
+    s.add_argument("--annotator", help="xlsx：この評価者の記録済みの判定を記入した状態で作る（比較シートからは除く）")
     s.set_defaults(func=human_export)
     s = human.add_parser("import", help="記入済みの評価票を取り込む")
     s.add_argument("data")

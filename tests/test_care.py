@@ -104,7 +104,8 @@ def test_xlsx_roundtrip(tmp_path):
     crit = (ROOT / "configs/care/criteria_v0.2_time.md").read_text(encoding="utf-8")
     path = export_workbook(items, tmp_path / "s.xlsx", crit, seed=2)
     wb = load_workbook(path)
-    assert wb.sheetnames == ["はじめに", "判定基準", "評価票", "作業記録"]
+    assert wb.sheetnames == ["はじめに", "判定基準", "評価票", "作業記録", "回答データ", "回答の比較"]
+    assert wb["回答データ"].sheet_state == "veryHidden"
     flat = " ".join(str(c.value) for row in wb["評価票"].iter_rows() for c in row if c.value)
     assert not any(it.intended_reason in flat for it in items) and "known_" not in flat
     for r in range(2, 8):
@@ -112,3 +113,20 @@ def test_xlsx_roundtrip(tmp_path):
     wb.save(path)
     items, problems = import_sheet(items, path, "z")
     assert problems == [] and all(it.human_labels["z"] == "なし" for it in items)
+
+
+def test_xlsx_prefill_and_comparison(tmp_path):
+    from openpyxl import load_workbook
+
+    from frictionlab.care.workbook import export_workbook
+
+    items = load_items(PILOT)
+    for it in items:
+        it.human_labels = {"甲": "あり", "乙": "なし"}
+        it.human_notes = {"甲": {"reason": "理由甲"}}
+    crit = (ROOT / "configs/care/criteria_v0.2_time.md").read_text(encoding="utf-8")
+    wb = load_workbook(export_workbook(items, tmp_path / "s.xlsx", crit, seed=1, annotator="甲"))
+    assert [wb["評価票"].cell(row=r, column=5).value for r in range(2, 8)] == ["あり"] * 6
+    data = [c.value for c in wb["回答データ"][1]]
+    assert data == ["ID", "乙の判定", "乙の理由"]  # 自分（甲）は比較相手に含めない
+    assert "全件記入後に表示" in wb["回答の比較"]["E7"].value
