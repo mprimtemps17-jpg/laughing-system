@@ -112,29 +112,17 @@ svg .t-title { font-weight: 700; font-size: 14px; }
 }
 .note blockquote { margin: .4rem 0; font-family: var(--font-display); font-size: 1.08rem; }
 
-.pitch {
-  background: var(--panel);
-  border-radius: 6px;
-  padding: 1.2rem 1.3rem;
-  max-width: 44em;
-  display: grid;
-  gap: .8rem;
-}
-.pitch p { margin: 0; }
-.pitch button {
-  justify-self: start;
-  font: inherit;
-  font-size: .9rem;
-  color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: .35rem .9rem;
-  cursor: pointer;
-}
-.pitch button:hover { border-color: var(--accent); }
-.pitch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .small { font-size: .88rem; color: var(--muted); }
+
+/* 印刷・PDF：図や囲みをページの途中で切らない */
+@media print {
+  body { font-size: 13px; }
+  .page { padding-block: 0; gap: 2rem; max-width: none; }
+  section, figure, .note, .timeline div, .two > div { break-inside: avoid; }
+  h2 { break-after: avoid; }
+  .fig-scroll { overflow: visible; }
+  .fig-scroll svg { min-width: 0; }
+}
 </style>
 
 <main class="page">
@@ -440,38 +428,4 @@ svg .t-title { font-weight: 700; font-size: 14px; }
     </div>
   </section>
 
-  <section>
-    <div class="sec-head prose">
-      <p class="kicker">説明用</p>
-      <h2>30秒で説明するなら</h2>
-    </div>
-    <div class="pitch">
-      <p id="pitch-text">「相手の事情を知っているのに、それを無視した発言をする」という配慮不足を、AIが見抜けるかを調べています。予定調整の短い会話を、事情を知っている・知らないなどのパターンで用意し、まず人間に判定してもらって正解を作ります。そのうえでAIに、直接判定させる方法と、「誰が何を知っているか」を整理してから判定させる方法の2通りで判定させ、どちらが人間の判断に近いかを比べます。今は、協力者に判定してもらい、判定基準が人間の感覚と合っているかを確かめている段階です。</p>
-      <button type="button" id="copy-pitch">文章をコピー</button>
-    </div>
-  </section>
-
 </main>
-
-<script>
-(function () {
-  var btn = document.getElementById("copy-pitch");
-  var text = document.getElementById("pitch-text");
-  function selectText() {
-    var range = document.createRange();
-    range.selectNodeContents(text);
-    var sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-  btn.addEventListener("click", function () {
-    var done = function () { btn.textContent = "コピーしました"; setTimeout(function () { btn.textContent = "文章をコピー"; }, 2000); };
-    try {
-      navigator.clipboard.writeText(text.textContent).then(done, function () { selectText(); btn.textContent = "選択しました（コピーしてください）"; });
-    } catch (e) {
-      selectText();
-      btn.textContent = "選択しました（コピーしてください）";
-    }
-  });
-})();
-</script>
