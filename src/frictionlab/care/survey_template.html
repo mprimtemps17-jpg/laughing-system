@@ -194,7 +194,7 @@ const CHOICES = [
   { v: "保留", d: "情報があいまいで、この基準では決められない" },
 ];
 const BY_CODE = Object.fromEntries(ITEMS.map(it => [it.code, it]));
-const LOCAL_KEY = "conversation-survey-v1";
+const LOCAL_KEY = "conversation-survey-v2";
 
 let db = null, user = null, uid = null, mode = "local", isOwner = false;
 let state = null;       // { name, order, answers, idx, done, startedAt, updatedAt }
@@ -226,6 +226,7 @@ function buildOrder(seedText) {
 function setSave(text, cls) { const el = document.getElementById("save-state"); el.textContent = text; el.className = "save-state" + (cls ? " " + cls : ""); }
 function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(state)); } catch (e) {} }
 function loadLocal() { try { const s = localStorage.getItem(LOCAL_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+function clearLocal() { try { localStorage.removeItem(LOCAL_KEY); } catch (e) {} }
 
 async function persist() {
   state.updatedAt = new Date().toISOString();
@@ -334,13 +335,21 @@ function renderIntro() {
       </ul>
     </section>
     <details class="criteria"><summary>判定基準を読む（はじめに一度お読みください）</summary><div class="body">${esc(CRITERIA)}</div></details>
+    ${resume && resume.startedAt && resume.name ? `
+    <section class="notice" id="resume-box">
+      <p>${esc(resume.name)}さんの${resume.done ? "回答（完了済み）" : "途中までの回答（" + Object.values(resume.answers || {}).filter(a => a && a.label).length + " / " + ITEMS.length + "件）"}がこの端末に残っています。</p>
+      <div class="actions" style="justify-content:flex-start;margin-top:.6rem">
+        <button class="btn secondary" type="button" id="resume-btn">${resume.done ? "結果を見る" : "続きから再開する"}</button>
+        <button class="btn text" type="button" id="discard-btn">消して最初から始める</button>
+      </div>
+    </section>` : ""}
     <form class="field" id="start-form" novalidate>
       <label for="name">お名前（ニックネーム可）<span class="req">必須</span></label>
-      <input class="text-input" id="name" autocomplete="nickname" maxlength="40" value="${esc((resume && resume.name) || "")}">
+      <input class="text-input" id="name" autocomplete="off" maxlength="40" value="">
       <span class="hint">研究者が誰の回答かを区別するためだけに使います。</span>
       <span class="error-text" id="name-error" hidden>お名前を入力してください。</span>
       <div class="actions" style="margin-top:.6rem">
-        <button class="btn" type="submit" id="start-btn">${resume && resume.startedAt ? "続きから再開する" : "回答をはじめる"}</button>
+        <button class="btn" type="submit" id="start-btn">回答をはじめる</button>
         ${isOwner ? `<button class="btn text" type="button" id="owner-btn">回答状況を見る（研究者のみ）</button>` : ""}
       </div>
     </form>`;
@@ -348,10 +357,14 @@ function renderIntro() {
     e.preventDefault();
     const name = document.getElementById("name").value.trim();
     if (!name) { document.getElementById("name-error").hidden = false; document.getElementById("name").focus(); return; }
-    if (resume && resume.startedAt && resume.name === name) { state = resume; }
-    else { state = { name, order: buildOrder(name + "|" + (uid || "local")), answers: {}, idx: 0, done: false, startedAt: new Date().toISOString(), breakShown: null }; }
+    clearLocal();
+    state = { name, order: buildOrder(name + "|" + (uid || "local")), answers: {}, idx: 0, done: false, startedAt: new Date().toISOString(), breakShown: null };
     persist(); render(); window.scrollTo(0, 0);
   });
+  const rb = document.getElementById("resume-btn");
+  if (rb) rb.addEventListener("click", () => { state = resume; render(); window.scrollTo(0, 0); });
+  const db_ = document.getElementById("discard-btn");
+  if (db_) db_.addEventListener("click", () => { clearLocal(); renderIntro(); document.getElementById("name").focus(); });
   const ob = document.getElementById("owner-btn");
   if (ob) ob.addEventListener("click", () => { state = state || {}; state.view = "owner"; state.startedAt = state.startedAt || "owner"; render(); });
 }
