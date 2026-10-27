@@ -16,3 +16,4 @@
 {"order": 16, "id": "T004-2", "annotator": "本人", "label": "なし", "evidence": "", "reason": "ok"}
 {"order": 17, "id": "T002-3", "annotator": "本人", "label": "判定対象外", "evidence": "", "reason": "Aは知り得ない情報である"}
 {"order": 18, "id": "T003-1", "annotator": "本人", "label": "あり", "evidence": "", "reason": "話を聞いていない"}
+{"order": 19, "id": "T007-1", "annotator": "本人", "label": "あり", "evidence": "", "reason": "話を聞いていない"}
