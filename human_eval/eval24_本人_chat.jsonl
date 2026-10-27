@@ -7,3 +7,4 @@
 {"order": 7, "id": "T001-1", "annotator": "本人", "label": "あり", "evidence": "", "reason": "話を聞いていない"}
 {"order": 8, "id": "T004-3", "annotator": "本人", "label": "判定対象外", "evidence": "", "reason": "Aは知り得ない情報である"}
 {"order": 9, "id": "T002-2", "annotator": "本人", "label": "なし", "evidence": "", "reason": "しっかりと円滑な会話ができている"}
+{"order": 10, "id": "T003-2", "annotator": "本人", "label": "なし", "evidence": "", "reason": "ok"}
