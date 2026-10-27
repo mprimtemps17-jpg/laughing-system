@@ -18,3 +18,4 @@
 {"order": 18, "id": "T003-1", "annotator": "本人", "label": "あり", "evidence": "", "reason": "話を聞いていない"}
 {"order": 19, "id": "T007-1", "annotator": "本人", "label": "あり", "evidence": "", "reason": "話を聞いていない"}
 {"order": 20, "id": "T006-2", "annotator": "本人", "label": "なし", "evidence": "", "reason": "ok"}
+{"order": 21, "id": "T008-1", "annotator": "本人", "label": "あり", "evidence": "", "reason": "話を聞いていない"}
