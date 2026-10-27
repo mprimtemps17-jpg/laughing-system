@@ -1,0 +1,477 @@
+<title>配慮不足研究の見取り図</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: 読み物の1カラム（約44em）。図だけ幅を広げ、狭い画面では図の中で横スクロール */
+:root {
+  --bg: #f6f7f9;
+  --fg: #1b2330;
+  --muted: #5a6575;
+  --line: #c6cdd7;
+  --panel: #eaedf2;
+  --speaker-a: #2f6aac;   /* 話者A */
+  --speaker-b: #b8582a;   /* 話者B */
+  --accent: #0d7f74;      /* 知識整理（B方式）・現在地 */
+  --warn: #a8364a;        /* 伝わっていない */
+  --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161c; --fg: #e5e9ef; --muted: #9ba6b5; --line: #3a4350; --panel: #1c232c;
+    --speaker-a: #6ea8e8; --speaker-b: #e38c5c; --accent: #41c3b4; --warn: #e47487;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161c; --fg: #e5e9ef; --muted: #9ba6b5; --line: #3a4350; --panel: #1c232c;
+  --speaker-a: #6ea8e8; --speaker-b: #e38c5c; --accent: #41c3b4; --warn: #e47487;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.85;
+}
+.page {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding-block: 2.5rem 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 3.2rem;
+}
+.prose { max-width: 44em; min-width: 0; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; line-height: 1.35; margin: 0; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.7rem); font-weight: 800; }
+h2 { font-size: 1.45rem; font-weight: 800; }
+h3 { font-size: 1.02rem; margin: 0 0 .4rem; }
+p { margin: .6rem 0; }
+.kicker { font-size: .78rem; letter-spacing: .14em; color: var(--muted); margin: 0 0 .6rem; }
+.lead { font-size: 1.12rem; margin-top: 1rem; }
+section { display: grid; gap: 1rem; }
+.sec-head { display: grid; gap: .3rem; }
+.sec-head .kicker { margin: 0; }
+
+.a { color: var(--speaker-a); font-weight: 700; }
+.b { color: var(--speaker-b); font-weight: 700; }
+.acc { color: var(--accent); font-weight: 700; }
+
+figure { margin: 0; display: grid; gap: .6rem; }
+.fig-scroll { overflow-x: auto; }
+.fig-scroll svg { display: block; width: 100%; min-width: 640px; height: auto; }
+figcaption { font-size: .9rem; color: var(--muted); max-width: 44em; }
+
+/* SVG の部品（色はすべてトークンから） */
+.box { fill: var(--panel); stroke: var(--line); stroke-width: 1.2; }
+.box-a { fill: var(--panel); stroke: var(--speaker-a); stroke-width: 1.6; }
+.box-b { fill: var(--panel); stroke: var(--speaker-b); stroke-width: 1.6; }
+.box-acc { fill: var(--panel); stroke: var(--accent); stroke-width: 2; }
+.box-now { fill: var(--accent); stroke: var(--accent); }
+.edge { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.edge-acc { stroke: var(--accent); stroke-width: 2.2; fill: none; }
+.edge-warn { stroke: var(--warn); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+.head { fill: var(--muted); }
+.head-acc { fill: var(--accent); }
+.head-warn { fill: var(--warn); }
+svg text { fill: var(--fg); font-family: var(--font-body); font-size: 13px; }
+svg .t-muted { fill: var(--muted); font-size: 12px; }
+svg .t-a { fill: var(--speaker-a); font-weight: 700; }
+svg .t-b { fill: var(--speaker-b); font-weight: 700; }
+svg .t-acc { fill: var(--accent); font-weight: 700; }
+svg .t-warn { fill: var(--warn); font-weight: 700; }
+svg .t-on-now { fill: var(--bg); font-weight: 700; }
+svg .t-title { font-weight: 700; font-size: 14px; }
+.pill { fill: var(--bg); stroke: var(--fg); stroke-width: 1.4; }
+
+/* 経過の表 */
+.timeline { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.timeline div { display: grid; grid-template-columns: 7.5rem 1fr; gap: 1rem; padding: .65rem 0; border-bottom: 1px solid var(--line); }
+.timeline dt { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .92rem; }
+.timeline dd { margin: 0; min-width: 0; }
+.timeline .now dt, .timeline .now dd strong { color: var(--accent); }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.4rem; }
+.two > div { min-width: 0; }
+.two ul { margin: .2rem 0 0; padding-left: 1.2rem; }
+.two li { margin: .25rem 0; }
+.label-yes, .label-no { font-size: .8rem; letter-spacing: .1em; font-weight: 700; }
+.label-yes { color: var(--accent); }
+.label-no { color: var(--warn); }
+
+.note {
+  border-left: 3px solid var(--speaker-b);
+  padding: .2rem 0 .2rem 1rem;
+  max-width: 44em;
+}
+.note blockquote { margin: .4rem 0; font-family: var(--font-display); font-size: 1.08rem; }
+
+.pitch {
+  background: var(--panel);
+  border-radius: 6px;
+  padding: 1.2rem 1.3rem;
+  max-width: 44em;
+  display: grid;
+  gap: .8rem;
+}
+.pitch p { margin: 0; }
+.pitch button {
+  justify-self: start;
+  font: inherit;
+  font-size: .9rem;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: .35rem .9rem;
+  cursor: pointer;
+}
+.pitch button:hover { border-color: var(--accent); }
+.pitch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.small { font-size: .88rem; color: var(--muted); }
+</style>
+
+<main class="page">
+
+  <header class="prose">
+    <p class="kicker">卒業研究 ・ 2026年10月27日時点</p>
+    <h1>知っているのに、配慮しない。<br>その発言をAIは見抜けるか</h1>
+    <p class="lead">
+      相手の事情を<strong>知っているのに</strong>、それを発言に反映しない。この種の配慮不足を、AIが人間と同じように見抜けるかを調べる研究です。
+      とくに、AIに「誰が何を知っているか」を先に整理させると、人間の判断に近づくかを確かめます。
+    </p>
+  </header>
+
+  <section class="prose">
+    <div class="sec-head">
+      <p class="kicker">出発点と問い</p>
+      <h2>周りの無神経な発言への違和感から</h2>
+    </div>
+    <p>
+      幼いころから、周りの人の無神経な発言に違和感を抱いてきました。その多くは「相手の事情を聞いて知っているはずなのに、発言に反映していない」ときに起きると考えました。
+      これを、<strong>共通基盤</strong>（会話で共有される知識）、<strong>心の理論</strong>（人によって知っていることが違う）、<strong>視点取得</strong>（相手の立場に立つ）という考え方で捉え直しています。
+    </p>
+    <p><strong>研究の問い：</strong>同じ会話を読ませたとき、AIに人物ごとの知識を整理させてから判定させると、直接判定させるより、人間の判断と一致するか。</p>
+    <p class="small">最初は範囲を絞り、2人の予定調整の会話で、相手の「この時間は無理」という制約を無視していないかを対象にしています。</p>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="kicker">判定の対象</p>
+      <h2>1つの場面から、3つのパターンを作る</h2>
+    </div>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 920 360" role="img" aria-label="同じ場面の3パターン。①と②ではBの事情がAに伝わっており、③では伝わっていない。①と③は対象発言が同じで、違いはAに伝わったかどうかだけ。">
+          <defs>
+            <marker id="f2-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
+            <marker id="f2-ahw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head-warn"/></marker>
+          </defs>
+
+          <!-- 列見出し -->
+          <text x="150" y="26" text-anchor="middle" class="t-title">① 知っていて、ぶつける</text>
+          <text x="460" y="26" text-anchor="middle" class="t-title">② 知っていて、合わせる</text>
+          <text x="770" y="26" text-anchor="middle" class="t-title">③ 知らずに、ぶつける</text>
+
+          <!-- Bの事情（共通） -->
+          <rect x="20" y="44" width="260" height="52" rx="6" class="box-b"/>
+          <text x="150" y="66" text-anchor="middle" class="t-b">Bの事情</text>
+          <text x="150" y="86" text-anchor="middle">今日18〜22時はバイト</text>
+          <rect x="330" y="44" width="260" height="52" rx="6" class="box-b"/>
+          <text x="460" y="66" text-anchor="middle" class="t-b">Bの事情</text>
+          <text x="460" y="86" text-anchor="middle">今日18〜22時はバイト</text>
+          <rect x="640" y="44" width="260" height="52" rx="6" class="box-b"/>
+          <text x="770" y="66" text-anchor="middle" class="t-b">Bの事情</text>
+          <text x="770" y="86" text-anchor="middle">今日18〜22時はバイト</text>
+
+          <!-- 伝達 -->
+          <line x1="150" y1="96" x2="150" y2="142" class="edge" marker-end="url(#f2-ah)"/>
+          <text x="160" y="124" class="t-muted">Bが伝え、Aが「分かった」</text>
+          <line x1="460" y1="96" x2="460" y2="142" class="edge" marker-end="url(#f2-ah)"/>
+          <text x="470" y="124" class="t-muted">Bが伝え、Aが「分かった」</text>
+          <line x1="770" y1="96" x2="770" y2="142" class="edge-warn" marker-end="url(#f2-ahw)"/>
+          <text x="780" y="118" class="t-warn">伝わっていない</text>
+          <text x="780" y="134" class="t-muted">（Bだけが知っている）</text>
+
+          <!-- Aの知識 -->
+          <rect x="20" y="144" width="260" height="52" rx="6" class="box-a"/>
+          <text x="150" y="166" text-anchor="middle" class="t-a">Aが知っていること</text>
+          <text x="150" y="186" text-anchor="middle">18〜22時は無理</text>
+          <rect x="330" y="144" width="260" height="52" rx="6" class="box-a"/>
+          <text x="460" y="166" text-anchor="middle" class="t-a">Aが知っていること</text>
+          <text x="460" y="186" text-anchor="middle">18〜22時は無理</text>
+          <rect x="640" y="144" width="260" height="52" rx="6" class="box-a"/>
+          <text x="770" y="166" text-anchor="middle" class="t-a">Aが知っていること</text>
+          <text x="770" y="186" text-anchor="middle">（何も知らない）</text>
+
+          <!-- 発言 -->
+          <line x1="150" y1="196" x2="150" y2="226" class="edge" marker-end="url(#f2-ah)"/>
+          <line x1="460" y1="196" x2="460" y2="226" class="edge" marker-end="url(#f2-ah)"/>
+          <line x1="770" y1="196" x2="770" y2="226" class="edge" marker-end="url(#f2-ah)"/>
+          <rect x="20" y="228" width="260" height="52" rx="6" class="box"/>
+          <text x="150" y="250" text-anchor="middle" class="t-muted">Aの発言</text>
+          <text x="150" y="270" text-anchor="middle">「20時開始で決定にするね」</text>
+          <rect x="330" y="228" width="260" height="52" rx="6" class="box"/>
+          <text x="460" y="250" text-anchor="middle" class="t-muted">Aの発言</text>
+          <text x="460" y="270" text-anchor="middle">「22時半からなら通話できる？」</text>
+          <rect x="640" y="228" width="260" height="52" rx="6" class="box"/>
+          <text x="770" y="250" text-anchor="middle" class="t-muted">Aの発言</text>
+          <text x="770" y="270" text-anchor="middle">「20時開始で決定にするね」</text>
+
+          <!-- ラベル -->
+          <rect x="95" y="300" width="110" height="34" rx="17" class="pill"/>
+          <text x="150" y="322" text-anchor="middle" class="t-title">配慮不足あり</text>
+          <rect x="405" y="300" width="110" height="34" rx="17" class="pill"/>
+          <text x="460" y="322" text-anchor="middle" class="t-title">なし</text>
+          <rect x="715" y="300" width="110" height="34" rx="17" class="pill"/>
+          <text x="770" y="322" text-anchor="middle" class="t-title">判定対象外</text>
+        </svg>
+      </div>
+      <figcaption>①と③は、Aの発言が一字一句同じです。違うのは「Bの事情がAに伝わったか」だけ。読み手（AI）は背景説明でBの事情を知っていますが、A本人は知りません。AIが「自分が知っていること」と「Aが知っていること」を区別できるかを、この③で確かめます。</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="kicker">実験の仕組み</p>
+      <h2>人間の判定を「ものさし」に、AIの2つの方式を比べる</h2>
+    </div>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 940 360" role="img" aria-label="同じ会話を、人間が判定して正解を作り、AIはA方式（直接判定）とB方式（知識表を作ってから判定）で判定する。最後に、それぞれのAIの判定を人間の正解と比べる。">
+          <defs>
+            <marker id="f3-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
+            <marker id="f3-aha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head-acc"/></marker>
+          </defs>
+
+          <!-- 会話 -->
+          <rect x="20" y="152" width="120" height="56" rx="6" class="box"/>
+          <text x="80" y="176" text-anchor="middle" class="t-title">会話</text>
+          <text x="80" y="196" text-anchor="middle" class="t-muted">予定調整の場面</text>
+
+          <!-- 分岐 -->
+          <polyline points="140,180 170,180 170,68 196,68" class="edge" marker-end="url(#f3-ah)"/>
+          <polyline points="140,180 196,180" class="edge" marker-end="url(#f3-ah)"/>
+          <polyline points="140,180 170,180 170,292 196,292" class="edge-acc" marker-end="url(#f3-aha)"/>
+
+          <!-- 人間 -->
+          <rect x="198" y="40" width="190" height="56" rx="6" class="box"/>
+          <text x="293" y="64" text-anchor="middle" class="t-title">人間が判定する</text>
+          <text x="293" y="84" text-anchor="middle" class="t-muted">本人・協力者が独立に</text>
+          <line x1="388" y1="68" x2="436" y2="68" class="edge" marker-end="url(#f3-ah)"/>
+          <rect x="438" y="40" width="170" height="56" rx="6" class="box"/>
+          <text x="523" y="64" text-anchor="middle" class="t-title">正解（ものさし）</text>
+          <text x="523" y="84" text-anchor="middle" class="t-muted">AIを動かす前に確定</text>
+
+          <!-- A方式 -->
+          <rect x="198" y="152" width="190" height="56" rx="6" class="box"/>
+          <text x="293" y="176" text-anchor="middle" class="t-title">A方式：直接判定</text>
+          <text x="293" y="196" text-anchor="middle" class="t-muted">読んですぐ答える（1回）</text>
+
+          <!-- B方式 -->
+          <rect x="198" y="264" width="190" height="56" rx="6" class="box-acc"/>
+          <text x="293" y="288" text-anchor="middle" class="t-acc">B方式 ①知識表を作る</text>
+          <text x="293" y="308" text-anchor="middle" class="t-muted">Aが知る／Bだけが知る</text>
+          <line x1="388" y1="292" x2="436" y2="292" class="edge-acc" marker-end="url(#f3-aha)"/>
+          <rect x="438" y="264" width="170" height="56" rx="6" class="box-acc"/>
+          <text x="523" y="288" text-anchor="middle" class="t-acc">②表を見て判定</text>
+          <text x="523" y="308" text-anchor="middle" class="t-muted">合計2回の呼び出し</text>
+
+          <!-- 比較 -->
+          <rect x="690" y="152" width="230" height="56" rx="6" class="box"/>
+          <text x="805" y="176" text-anchor="middle" class="t-title">正解と比べる</text>
+          <text x="805" y="196" text-anchor="middle" class="t-muted">どちらの方式が人間に近いか</text>
+          <polyline points="608,68 805,68 805,148" class="edge" marker-end="url(#f3-ah)"/>
+          <text x="700" y="60" class="t-muted">正解</text>
+          <line x1="388" y1="180" x2="686" y2="180" class="edge" marker-end="url(#f3-ah)"/>
+          <text x="420" y="172" class="t-muted">A方式の判定</text>
+          <polyline points="608,292 805,292 805,212" class="edge-acc" marker-end="url(#f3-aha)"/>
+          <text x="640" y="284" class="t-acc">B方式の判定</text>
+        </svg>
+      </div>
+      <figcaption>人間の判定は、それ自体がゴールではなく、AIを採点するための「ものさし」です。結果を見てから正解を変えないよう、AIを動かす前に確定させます。B方式の第1段階には、判定対象の発言も正解も見せません。</figcaption>
+    </figure>
+    <div class="prose">
+      <p>人間の判定には、もう1つの役割があります。<strong>判定基準が人間の感覚と合っているかの確認</strong>です。人によって判定が割れるなら、基準の書き方が曖昧ということなので、直してから先に進みます。</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="kicker">現在地</p>
+      <h2>いまは、判定基準を人間の感覚で確かめる段階</h2>
+    </div>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 940 210" role="img" aria-label="研究は4段階。いまは段階1（判定基準を固める）で、本人の判定が終わり、協力者の判定を待っている。">
+          <defs>
+            <marker id="f4-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
+          </defs>
+          <text x="117" y="24" text-anchor="middle" class="t-acc">▼ いまここ</text>
+          <rect x="20" y="36" width="195" height="62" rx="6" class="box-now"/>
+          <text x="117" y="62" text-anchor="middle" class="t-on-now">段階1　基準を固める</text>
+          <text x="117" y="82" text-anchor="middle" class="t-on-now">予備の会話6件</text>
+          <line x1="215" y1="67" x2="257" y2="67" class="edge" marker-end="url(#f4-ah)"/>
+          <rect x="260" y="36" width="195" height="62" rx="6" class="box"/>
+          <text x="357" y="62" text-anchor="middle" class="t-title">段階2　予備実験</text>
+          <text x="357" y="82" text-anchor="middle" class="t-muted">AIで6件を試す</text>
+          <line x1="455" y1="67" x2="497" y2="67" class="edge" marker-end="url(#f4-ah)"/>
+          <rect x="500" y="36" width="195" height="62" rx="6" class="box"/>
+          <text x="597" y="62" text-anchor="middle" class="t-title">段階3　本番の準備</text>
+          <text x="597" y="82" text-anchor="middle" class="t-muted">新しい8場面×3＝24件</text>
+          <line x1="695" y1="67" x2="737" y2="67" class="edge" marker-end="url(#f4-ah)"/>
+          <rect x="740" y="36" width="180" height="62" rx="6" class="box"/>
+          <text x="830" y="62" text-anchor="middle" class="t-title">段階4　本実験</text>
+          <text x="830" y="82" text-anchor="middle" class="t-muted">比較・分析・報告</text>
+
+          <text x="28" y="130" class="t-acc">✓ 本人が6件を判定（済）</text>
+          <text x="28" y="152">… 協力者の判定（依頼中）</text>
+          <text x="28" y="174" class="t-muted">一致度を見て基準を直す</text>
+          <text x="268" y="130" class="t-muted">A・B方式で動かす</text>
+          <text x="268" y="152" class="t-muted">手順と所要時間の確認</text>
+          <text x="268" y="174" class="t-muted">成績には含めない</text>
+          <text x="508" y="130" class="t-muted">候補24件を確認・修正</text>
+          <text x="508" y="152" class="t-muted">人間が判定し正解を確定</text>
+          <text x="508" y="174" class="t-muted">（AIを動かす前に）</text>
+          <text x="748" y="130" class="t-muted">A・B方式を比べる</text>
+          <text x="748" y="152" class="t-muted">誤りの種類を分析</text>
+          <text x="748" y="174" class="t-muted">ゼミで報告</text>
+        </svg>
+      </div>
+      <figcaption>予備と本番では、別の場面を使います。予備の結果で基準を直してから本番に進むので、本番の正解は「直した後の基準」で決まります。</figcaption>
+    </figure>
+
+    <div class="prose">
+      <h3>ここまでの経過</h3>
+      <dl class="timeline">
+        <div><dt>10月初旬〜中旬</dt><dd>先行研究11本を読み、研究の問いを整理</dd></div>
+        <div><dt>10月13日</dt><dd>最初の計画（v0.1）と試作の会話20件</dd></div>
+        <div><dt>10月19日</dt><dd>範囲を予定調整に絞った計画（v0.2）。判定基準と予備の会話6件</dd></div>
+        <div><dt>10月25日</dt><dd>実験環境を構築。本番用の会話24件の候補を作成</dd></div>
+        <div class="now"><dt>10月26日</dt><dd><strong>本人が予備6件を判定し、6件とも作成時の想定と一致。</strong>協力者用の評価票を作成</dd></div>
+      </dl>
+      <p class="small">本人の判定は、例が作られた経緯を知ったうえでのものなので、独立した判定ではありません。協力者の判定が、人間の感覚と合っているかの本当の確認になります。</p>
+    </div>
+  </section>
+
+  <section class="note">
+    <p class="kicker">途中で見つかったこと</p>
+    <p>Aが事情を知らないパターン（③）でも、本人はこう感じていました。</p>
+    <blockquote>「Aは知らない。でも、相手の予定を何も確認せずに決めるのは思慮が浅い」</blockquote>
+    <p>今の基準が見ているのは「<strong>知っている事情を反映したか</strong>」です。この違和感は、それとは別の「<strong>知らない可能性を考えて確認したか</strong>」という配慮です。もともとの問題意識にも近いので、研究を広げるときの種として記録しています。</p>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="kicker">この研究で言えること</p>
+      <h2>分かること、分からないこと</h2>
+    </div>
+    <div class="two prose">
+      <div>
+        <p class="label-yes">分かること</p>
+        <ul>
+          <li>AIが「知っている事情の無視」をどれくらい見抜けるか</li>
+          <li>「誰が何を知っているか」を先に整理すると、人間の判断に近づくか</li>
+          <li>AIが「知らないはずの情報を知っていたことにする」誤り（誤帰属）をどのくらいするか</li>
+          <li>AIがどんな種類の間違いをしやすいか</li>
+        </ul>
+      </div>
+      <div>
+        <p class="label-no">この実験だけでは言えないこと</p>
+        <ul>
+          <li>人が無神経な発言をしてしまう心理的な原因</li>
+          <li>AIが相手の気持ちを本当に理解しているかどうか</li>
+          <li>予定調整以外の会話でも同じ結果になるか</li>
+        </ul>
+      </div>
+    </div>
+    <p class="prose small">「整理しても改善しなかった」という結果も、研究の成果として報告します。</p>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="kicker">将来の展望</p>
+      <h2>検出から、気づかせる支援へ</h2>
+    </div>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 940 170" role="img" aria-label="今は予定調整での検出。次に他の制約へ、さらに感情や確認しない決定へと配慮の種類を広げ、最後は送信前に気づかせるAIへつなげる。">
+          <defs>
+            <marker id="f5-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
+          </defs>
+          <rect x="20" y="58" width="190" height="72" rx="6" class="box-now"/>
+          <text x="115" y="86" text-anchor="middle" class="t-on-now">いま</text>
+          <text x="115" y="108" text-anchor="middle" class="t-on-now">予定の制約の無視を検出</text>
+
+          <line x1="210" y1="94" x2="252" y2="94" class="edge" marker-end="url(#f5-ah)"/>
+          <text x="231" y="44" text-anchor="middle" class="t-muted">場面を広げる</text>
+          <rect x="255" y="58" width="190" height="72" rx="6" class="box"/>
+          <text x="350" y="86" text-anchor="middle" class="t-title">ほかの制約へ</text>
+          <text x="350" y="108" text-anchor="middle" class="t-muted">予算・食事・手段・前提知識</text>
+
+          <line x1="445" y1="94" x2="487" y2="94" class="edge" marker-end="url(#f5-ah)"/>
+          <text x="466" y="44" text-anchor="middle" class="t-muted">配慮の種類を広げる</text>
+          <rect x="490" y="58" width="200" height="72" rx="6" class="box"/>
+          <text x="590" y="86" text-anchor="middle" class="t-title">感情・確認のなさへ</text>
+          <text x="590" y="108" text-anchor="middle" class="t-muted">「確認せずに決める」も対象に</text>
+
+          <line x1="690" y1="94" x2="732" y2="94" class="edge" marker-end="url(#f5-ah)"/>
+          <text x="711" y="44" text-anchor="middle" class="t-muted">検出から支援へ</text>
+          <rect x="735" y="58" width="185" height="72" rx="6" class="box-b"/>
+          <text x="827" y="86" text-anchor="middle" class="t-b">送信前に気づかせるAI</text>
+          <text x="827" y="108" text-anchor="middle" class="t-muted">「相手はこの事情があるよ」</text>
+        </svg>
+      </div>
+      <figcaption>他の制約の会話は、生成の仕組みと判定基準の案（v0.3）がすでにあります。最後の段階は、AIが人と人の会話の間に入って理解を助けるという先行研究（Aoyama et al., 2025）が描く方向です。</figcaption>
+    </figure>
+    <div class="prose">
+      <h3>最終的な成果物（卒業研究として）</h3>
+      <ul>
+        <li>日本語の会話で配慮不足を判定する基準</li>
+        <li>人間が判定した会話データ</li>
+        <li>AIの2方式の比較結果と、間違いの分析</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="kicker">説明用</p>
+      <h2>30秒で説明するなら</h2>
+    </div>
+    <div class="pitch">
+      <p id="pitch-text">「相手の事情を知っているのに、それを無視した発言をする」という配慮不足を、AIが見抜けるかを調べています。予定調整の短い会話を、事情を知っている・知らないなどのパターンで用意し、まず人間に判定してもらって正解を作ります。そのうえでAIに、直接判定させる方法と、「誰が何を知っているか」を整理してから判定させる方法の2通りで判定させ、どちらが人間の判断に近いかを比べます。今は、協力者に判定してもらい、判定基準が人間の感覚と合っているかを確かめている段階です。</p>
+      <button type="button" id="copy-pitch">文章をコピー</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  var btn = document.getElementById("copy-pitch");
+  var text = document.getElementById("pitch-text");
+  function selectText() {
+    var range = document.createRange();
+    range.selectNodeContents(text);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+  btn.addEventListener("click", function () {
+    var done = function () { btn.textContent = "コピーしました"; setTimeout(function () { btn.textContent = "文章をコピー"; }, 2000); };
+    try {
+      navigator.clipboard.writeText(text.textContent).then(done, function () { selectText(); btn.textContent = "選択しました（コピーしてください）"; });
+    } catch (e) {
+      selectText();
+      btn.textContent = "選択しました（コピーしてください）";
+    }
+  });
+})();
+</script>
