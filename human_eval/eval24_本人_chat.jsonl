@@ -3,3 +3,4 @@
 {"order": 3, "id": "T002-1", "annotator": "本人", "label": "あり", "evidence": "", "reason": "AはBの情報を聞いているにもかかわらずその内容と齟齬のある会話をしている"}
 {"order": 4, "id": "T007-3", "annotator": "本人", "label": "判定対象外", "evidence": "", "reason": "Aはこれを知りようがない"}
 {"order": 5, "id": "T008-2", "annotator": "本人", "label": "なし", "evidence": "", "reason": "ok"}
+{"order": 6, "id": "T003-3", "annotator": "本人", "label": "判定対象外", "evidence": "", "reason": "Aは仕方ないが、Cが教えてあげないのには違和感を感じた（会話の自然さへの指摘）"}
