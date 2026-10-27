@@ -403,8 +403,9 @@ def build_variants(spec: SceneSpec, sc: Scene, rng: random.Random) -> list[dict]
         unk_bg = (base_bg + f"\n{sc.constraint_fact}この事情はBだけが知っている。"
                   "Aには伝えておらず、Aが別の経路で知ったこともない。")
     elif spec.route_unknown == "absent":
-        unk_bg = (base_bg + f"\nAが席を外している間に、BはCに「{sc.constraint_quote}」と話した。"
-                  "Aはその場におらず、戻ってきた後もこの話は出ていない。")
+        # Cは2人の予定に関係のない人物にする（「なぜCがAに伝えないのか」という不自然さを避ける）
+        unk_bg = (base_bg + f"\nAが席を外している間に、Bはたまたま通りかかった知人Cと立ち話をし、「{sc.constraint_quote}」と話した。"
+                  "Cはすぐに立ち去った。Aはその場におらず、戻ってきた後もこの話は出ていない。")
     elif spec.route_unknown == "memo":
         unk_bg = (base_bg + f"\nBは自分の手帳にだけ「{sc.constraint_quote}」と書いている。"
                   "AはBの手帳を見ておらず、Bから聞いたこともない。")
