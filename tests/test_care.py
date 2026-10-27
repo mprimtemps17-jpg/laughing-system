@@ -108,6 +108,7 @@ def test_xlsx_roundtrip(tmp_path):
     assert wb["回答データ"].sheet_state == "veryHidden"
     flat = " ".join(str(c.value) for row in wb["評価票"].iter_rows() for c in row if c.value)
     assert not any(it.intended_reason in flat for it in items) and "known_" not in flat
+    assert not any(it.id in flat for it in items)  # 元のID（変種の番号）を見せない
     for r in range(2, 8):
         wb["評価票"].cell(row=r, column=5, value="なし")
     wb.save(path)

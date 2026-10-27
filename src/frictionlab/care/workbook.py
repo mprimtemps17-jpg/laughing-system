@@ -19,7 +19,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from .humaneval import presentation_order
+from .humaneval import presentation_order, sheet_id
 from .items import LABELS, CareItem, render_context
 
 FONT = "Meiryo"  # 日本語を読みやすく表示できるフォント（Windows標準。Macでは近いフォントで表示される）
@@ -132,7 +132,7 @@ def export_workbook(items: list[CareItem], out_path: str | Path, criteria: str, 
         ctx = render_context(it)
         mine = annotator and it.human_labels.get(annotator)
         note = it.human_notes.get(annotator, {}) if mine else {}
-        vals = [r - 1, it.id, ctx, it.target, mine or None, note.get("evidence") or None, note.get("reason") or None]
+        vals = [r - 1, sheet_id(it.id), ctx, it.target, mine or None, note.get("evidence") or None, note.get("reason") or None]
         for col, v in enumerate(vals, 1):
             c = we.cell(row=r, column=col, value=v)
             c.font = _f()
@@ -178,7 +178,8 @@ def export_workbook(items: list[CareItem], out_path: str | Path, criteria: str, 
     wb.properties.title = title
     wb.save(out_path)
     out_path.with_suffix(".order.txt").write_text(
-        f"作成日={date.today()} seed={seed}\n" + " → ".join(it.id for it in ordered) + "\n", encoding="utf-8")
+        f"作成日={date.today()} seed={seed}\n" + " → ".join(f"{it.id}({sheet_id(it.id)})" for it in ordered) + "\n",
+        encoding="utf-8")
     return out_path
 
 
@@ -192,7 +193,7 @@ def _comparison_sheets(wb: Workbook, ordered: list[CareItem], annotator: str | N
     wd = wb.create_sheet("回答データ")
     wd.append(["ID"] + [x for o in others for x in (f"{o}の判定", f"{o}の理由")])
     for it in ordered:
-        row = [it.id]
+        row = [sheet_id(it.id)]
         for o in others:
             note = it.human_notes.get(o, {})
             reason = "／".join(x for x in (note.get("evidence", ""), note.get("reason", "")) if x)

@@ -20,6 +20,13 @@ from .items import LABELS, CareItem, render_context, save_items
 SHEET_COLUMNS = ["提示順", "id", "文脈", "対象発言（A）", "判定", "根拠となる箇所", "理由・迷った点"]
 
 
+def sheet_id(item_id: str) -> str:
+    """評価票に載せる中立的なID。元のID（T001-3 など）は変種の番号が答えの手がかりになるため見せない。"""
+    import hashlib
+
+    return "Q" + hashlib.sha1(f"frictionlab:{item_id}".encode()).hexdigest()[:5].upper()
+
+
 def presentation_order(items: list[CareItem], seed: int) -> list[CareItem]:
     """乱数の種で並べ替え、同じ場面の変種がなるべく連続しないようにする。"""
     rng = random.Random(seed)
@@ -41,10 +48,10 @@ def export_sheet(items: list[CareItem], out_csv: str | Path, seed: int = 0) -> P
         w = csv.writer(f)
         w.writerow(SHEET_COLUMNS)
         for i, it in enumerate(ordered, 1):
-            w.writerow([i, it.id, render_context(it), it.target, "", "", ""])
+            w.writerow([i, sheet_id(it.id), render_context(it), it.target, "", "", ""])
     # 提示順の記録（評価者には渡さない）
     out_csv.with_suffix(".order.txt").write_text(
-        f"seed={seed}\n" + " → ".join(it.id for it in ordered) + "\n", encoding="utf-8"
+        f"seed={seed}\n" + " → ".join(f"{it.id}({sheet_id(it.id)})" for it in ordered) + "\n", encoding="utf-8"
     )
     return out_csv
 
@@ -54,7 +61,7 @@ def import_sheet(items: list[CareItem], sheet: str | Path, annotator: str) -> tu
         df = pd.read_excel(sheet, sheet_name="評価票", dtype=str).fillna("").rename(columns={"ID": "id"})
     else:
         df = pd.read_csv(sheet, encoding="utf-8-sig", dtype=str).fillna("")
-    by_id = {it.id: it for it in items}
+    by_id = {it.id: it for it in items} | {sheet_id(it.id): it for it in items}
     problems = []
     for _, row in df.iterrows():
         it = by_id.get(row["id"])
