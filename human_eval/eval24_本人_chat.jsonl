@@ -9,3 +9,4 @@
 {"order": 9, "id": "T002-2", "annotator": "本人", "label": "なし", "evidence": "", "reason": "しっかりと円滑な会話ができている"}
 {"order": 10, "id": "T003-2", "annotator": "本人", "label": "なし", "evidence": "", "reason": "ok"}
 {"order": 11, "id": "T001-2", "annotator": "本人", "label": "なし", "evidence": "", "reason": "ok"}
+{"order": 12, "id": "T005-1", "annotator": "本人", "label": "あり", "evidence": "", "reason": "話を聞いていない"}
