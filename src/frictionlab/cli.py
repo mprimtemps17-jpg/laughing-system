@@ -144,6 +144,16 @@ def human_agreement(args) -> int:
     return 0
 
 
+def human_survey(args) -> int:
+    from .care.items import load_items
+    from .care.survey import build_survey
+
+    sets = {"pilot": load_items(args.pilot), "eval": load_items(args.eval)}
+    out = build_survey(sets, Path(args.criteria).read_text(encoding="utf-8"), args.out)
+    print(f"回答サイト: {out}（予備 {len(sets['pilot'])} 件 + 本番 {len(sets['eval'])} 件）")
+    return 0
+
+
 # ---------------------------------------------------------------- gen
 def gen_plan(args) -> int:
     from .gen.spec import load_gen_config, plan_specs
@@ -277,6 +287,13 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--table", help="例ごとの一覧をCSVで保存")
     s.add_argument("--write-gold", help="全員一致の例に gold_label を付けて保存")
     s.set_defaults(func=human_agreement)
+
+    s = human.add_parser("survey", help="回答サイト（HTML）を作る")
+    s.add_argument("--pilot", default="data/care/v0.2_pilot.jsonl")
+    s.add_argument("--eval", default="data/generated/time_eval_template.jsonl")
+    s.add_argument("--criteria", default="configs/care/criteria_v0.2_time.md")
+    s.add_argument("--out", default="human_eval/survey/index.html")
+    s.set_defaults(func=human_survey)
 
     gen = top.add_parser("gen", help="会話の生成").add_subparsers(dest="cmd", required=True)
     s = gen.add_parser("plan", help="生成する場面の組み合わせを表示")

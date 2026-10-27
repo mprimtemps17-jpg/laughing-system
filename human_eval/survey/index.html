@@ -1,0 +1,515 @@
+<title>会話の判定調査</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+Mono:wght@500&display=swap">
+<style>
+/* Layout: 行政サービス系の基調（白地・濃い青のキーカラー・大きな操作部品・明確なフォーカス）に倣った1カラムの回答フォーム */
+:root {
+  --bg: #ffffff;
+  --surface: #f2f2f2;
+  --fg: #1a1a1c;
+  --muted: #626264;
+  --line: #cccccc;
+  --primary: #0017c1;
+  --primary-hover: #00118f;
+  --primary-tint: #e8f1fe;
+  --on-primary: #ffffff;
+  --a-tint: #e8f1fe;
+  --b-tint: #f2f2f2;
+  --focus: #ffd43d;
+  --success: #197a4b;
+  --error: #ce0000;
+  --font: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --mono: "Noto Sans Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16171a; --surface: #23252a; --fg: #ececee; --muted: #a8a9ad; --line: #45474d;
+    --primary: #7096f8; --primary-hover: #9db7f9; --primary-tint: #1d2747; --on-primary: #0b0f24;
+    --a-tint: #1d2747; --b-tint: #2a2c31; --focus: #ffd43d; --success: #51b883; --error: #ff7b7b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16171a; --surface: #23252a; --fg: #ececee; --muted: #a8a9ad; --line: #45474d;
+  --primary: #7096f8; --primary-hover: #9db7f9; --primary-tint: #1d2747; --on-primary: #0b0f24;
+  --a-tint: #1d2747; --b-tint: #2a2c31; --focus: #ffd43d; --success: #51b883; --error: #ff7b7b;
+  color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.7; }
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+h1, h2, h3 { line-height: 1.4; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 4px solid var(--focus); outline-offset: 2px; box-shadow: 0 0 0 2px var(--fg); border-radius: 4px; }
+
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.topbar-inner, .wrap {
+  max-width: 46rem; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.topbar-inner { padding-block: .7rem; display: grid; gap: .45rem; }
+.topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 1rem; }
+.save-state { font-size: .82rem; color: var(--muted); }
+.save-state.ok { color: var(--success); }
+.save-state.err { color: var(--error); }
+.progress { display: grid; gap: .25rem; }
+.progress-meta { display: flex; justify-content: space-between; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--primary); width: 0; transition: width .25s ease; }
+@media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+
+.wrap { padding-block: 1.6rem 4rem; display: grid; gap: 1.5rem; }
+.eyebrow { font-size: .82rem; font-weight: 700; color: var(--primary); letter-spacing: .04em; }
+.lead { font-size: 1.05rem; }
+.muted { color: var(--muted); }
+.small { font-size: .88rem; }
+
+.panel { border: 1px solid var(--line); border-radius: 8px; padding: 1.1rem 1.2rem; display: grid; gap: .7rem; }
+.panel.tint { background: var(--surface); border-color: var(--surface); }
+ul.rules { margin: 0; padding-left: 1.2rem; display: grid; gap: .35rem; }
+
+.field { display: grid; gap: .35rem; }
+.field label { font-weight: 700; }
+.field .req { color: var(--error); font-size: .8rem; margin-left: .4rem; font-weight: 700; }
+.text-input, textarea {
+  width: 100%; border: 1px solid var(--muted); border-radius: 8px; background: var(--bg);
+  padding: .7rem .85rem; min-height: 48px;
+}
+textarea { min-height: 5.2rem; resize: vertical; }
+.hint { font-size: .85rem; color: var(--muted); }
+.error-text { font-size: .88rem; color: var(--error); font-weight: 500; }
+
+.btn {
+  min-height: 48px; padding: .6rem 1.4rem; border-radius: 8px; border: 2px solid var(--primary);
+  background: var(--primary); color: var(--on-primary); font-weight: 700; cursor: pointer;
+}
+.btn:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.btn.secondary { background: var(--bg); color: var(--primary); }
+.btn.secondary:hover { background: var(--primary-tint); }
+.btn.text { border-color: transparent; background: transparent; color: var(--primary); text-decoration: underline; padding-inline: .4rem; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.actions { display: flex; gap: .8rem; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+
+/* 問題カード */
+.scene { display: grid; gap: 1rem; }
+.qhead { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.qno { font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.qcode { font-family: var(--mono); font-size: .78rem; color: var(--muted); }
+.block-label { font-size: .82rem; font-weight: 700; color: var(--muted); }
+.background { background: var(--surface); border-radius: 8px; padding: .9rem 1rem; white-space: pre-wrap; }
+.talk { display: grid; gap: .55rem; }
+.turn { display: grid; grid-template-columns: 2rem 1fr; gap: .6rem; align-items: start; }
+.who {
+  width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 700; font-size: .9rem; border: 2px solid var(--fg);
+}
+.bubble { border-radius: 4px 12px 12px 12px; padding: .55rem .85rem; min-width: 0; }
+.turn.A .bubble { background: var(--a-tint); }
+.turn.B .bubble { background: var(--b-tint); }
+.turn.N { grid-template-columns: 1fr; }
+.turn.N .bubble { background: transparent; border-left: 3px solid var(--line); border-radius: 0; color: var(--muted); }
+.target {
+  border: 2px solid var(--primary); border-radius: 8px; padding: .9rem 1rem; display: grid; gap: .3rem;
+  background: var(--primary-tint);
+}
+.target .block-label { color: var(--primary); }
+.target p { font-size: 1.12rem; font-weight: 700; }
+
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: .6rem; }
+legend { font-weight: 700; margin-bottom: .5rem; padding: 0; }
+.choice { position: relative; }
+.choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.choice label {
+  display: grid; grid-template-columns: 1.6rem 1fr; gap: .7rem; align-items: start;
+  border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; cursor: pointer; min-height: 56px;
+}
+.choice label:hover { border-color: var(--primary); }
+.dot { width: 1.4rem; height: 1.4rem; border-radius: 50%; border: 2px solid var(--muted); margin-top: .15rem; display: grid; place-items: center; }
+.choice input:checked + label { border: 2px solid var(--primary); background: var(--primary-tint); padding: calc(.8rem - 1px) calc(1rem - 1px); }
+.choice input:checked + label .dot { border-color: var(--primary); }
+.choice input:checked + label .dot::after { content: ""; width: .7rem; height: .7rem; border-radius: 50%; background: var(--primary); }
+.choice input:focus-visible + label { outline: 4px solid var(--focus); outline-offset: 2px; box-shadow: 0 0 0 2px var(--fg); }
+.choice .t { font-weight: 700; }
+.choice .d { display: block; font-size: .88rem; color: var(--muted); }
+.key { font-family: var(--mono); font-size: .75rem; border: 1px solid var(--line); border-radius: 4px; padding: 0 .3rem; margin-left: .4rem; color: var(--muted); }
+
+details.criteria { border: 1px solid var(--line); border-radius: 8px; }
+details.criteria summary { cursor: pointer; padding: .7rem 1rem; font-weight: 700; color: var(--primary); min-height: 48px; display: flex; align-items: center; }
+details.criteria .body { padding: 0 1rem 1rem; white-space: pre-wrap; font-size: .92rem; }
+
+/* 完了・比較 */
+.stat-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: .7rem 1rem; min-width: 9rem; }
+.stat b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: .55rem .7rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: var(--surface); font-weight: 700; white-space: nowrap; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.match { font-weight: 700; }
+.match.y { color: var(--success); }
+.match.n { color: var(--error); }
+tr:last-child td { border-bottom: 0; }
+.codebox { width: 100%; min-height: 6rem; font-family: var(--mono); font-size: .78rem; }
+.notice { border-left: 4px solid var(--primary); background: var(--primary-tint); padding: .7rem 1rem; border-radius: 0 8px 8px 0; }
+.notice.warn { border-left-color: var(--error); background: var(--surface); }
+</style>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-row">
+      <span class="brand">会話の判定調査</span>
+      <span class="save-state" id="save-state" aria-live="polite">記録の準備をしています</span>
+    </div>
+    <div class="progress" id="progress" hidden>
+      <div class="progress-meta"><span id="progress-set"></span><span id="progress-count"></span></div>
+      <div class="bar" role="progressbar" aria-label="回答の進み具合" aria-valuemin="0" id="progress-bar"><i id="progress-fill"></i></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app" aria-live="off"></main>
+
+<script>
+const ITEMS = [{"code": "QB3345", "set": "pilot", "group": "e78751", "background": "AとBは友人で、明日の課題について30分通話する予定を決める。", "turns": [{"s": "B", "t": "今日は18時から22時までバイトで、通話できない"}, {"s": "A", "t": "分かった"}, {"s": "B", "t": "通話の開始時刻を決めよう"}], "target": "通話は今日20時開始で決定にするね"}, {"code": "Q9D70C", "set": "pilot", "group": "e78751", "background": "AとBは友人で、明日の課題について30分通話する予定を決める。", "turns": [{"s": "B", "t": "今日は18時から22時までバイトで、通話できない"}, {"s": "A", "t": "分かった"}, {"s": "B", "t": "通話の開始時刻を決めよう"}], "target": "バイトが終わった後の22時半からなら通話できる？"}, {"code": "Q22DD5", "set": "pilot", "group": "e78751", "background": "Bは今日18時から22時までバイトで通話できない。この事情はBだけが知っている。Aには伝えておらず、Aが別経路で知ったこともない。", "turns": [{"s": "A", "t": "明日の課題について、今日30分通話しよう"}, {"s": "B", "t": "通話の開始時刻を決めよう"}], "target": "通話は今日20時開始で決定にするね"}, {"code": "Q85ACB", "set": "pilot", "group": "615f26", "background": "同じ研究室のAとBは、大学内で30分間の打合せをする時刻を決めている。", "turns": [{"s": "B", "t": "今日は13時から14時半まで授業で、打合せには参加できない"}, {"s": "A", "t": "了解"}, {"s": "B", "t": "打合せの開始時刻を決めよう"}], "target": "打合せは今日13時半開始で決定にするね"}, {"code": "QD9788", "set": "pilot", "group": "615f26", "background": "同じ研究室のAとBは、大学内で30分間の打合せをする時刻を決めている。", "turns": [{"s": "B", "t": "今日は13時から14時半まで授業で、打合せには参加できない"}, {"s": "A", "t": "了解"}, {"s": "B", "t": "打合せの開始時刻を決めよう"}], "target": "授業が終わった後の15時からなら打合せできる？"}, {"code": "QC6DCB", "set": "pilot", "group": "615f26", "background": "Bは今日13時から14時半まで授業で打合せに参加できない。この事情はBだけが知っている。Aには伝えておらず、Aが別経路で知ったこともない。", "turns": [{"s": "A", "t": "大学で今日30分間打合せしよう"}, {"s": "B", "t": "打合せの開始時刻を決めよう"}], "target": "打合せは今日13時半開始で決定にするね"}, {"code": "QA8585", "set": "eval", "group": "cf6f4b", "background": "AとBはルームメイト。図書館で1時間の勉強会をする時刻を決めている。", "turns": [{"s": "B", "t": "明日は13時から14時半まで授業で、勉強会はできない"}, {"s": "A", "t": "分かった"}, {"s": "B", "t": "勉強会の開始時刻を決めよう"}], "target": "勉強会は明日13時半開始で決定にするね"}, {"code": "Q936A4", "set": "eval", "group": "cf6f4b", "background": "AとBはルームメイト。図書館で1時間の勉強会をする時刻を決めている。", "turns": [{"s": "B", "t": "明日は13時から14時半まで授業で、勉強会はできない"}, {"s": "A", "t": "分かった"}, {"s": "B", "t": "勉強会の開始時刻を決めよう"}], "target": "授業が終わった後の15時からなら勉強会できる？"}, {"code": "QA5B8A", "set": "eval", "group": "cf6f4b", "background": "AとBはルームメイト。図書館で1時間の勉強会をする時刻を決めている。\nBは明日13時から14時半まで授業で、勉強会はできない。この事情はBだけが知っている。Aには伝えておらず、Aが別の経路で知ったこともない。", "turns": [{"s": "A", "t": "明日、図書館で1時間勉強会しよう"}, {"s": "B", "t": "勉強会の開始時刻を決めよう"}], "target": "勉強会は明日13時半開始で決定にするね"}, {"code": "QD595E", "set": "eval", "group": "f16701", "background": "Aは研究室の先輩、Bは後輩。新歓のビラ配りを1時間する時刻を決めている。", "turns": [{"s": "A", "t": "Cから聞いたけど、明日は10時から13時までバイトがあるんだよね？"}, {"s": "B", "t": "はい、そうなんです。ビラ配りの開始時刻を決めましょう"}], "target": "じゃあ明日12時半からビラ配りしよう"}, {"code": "QF583D", "set": "eval", "group": "f16701", "background": "Aは研究室の先輩、Bは後輩。新歓のビラ配りを1時間する時刻を決めている。", "turns": [{"s": "A", "t": "Cから聞いたけど、明日は10時から13時までバイトがあるんだよね？"}, {"s": "B", "t": "はい、そうなんです。ビラ配りの開始時刻を決めましょう"}], "target": "バイトが終わった後の14時半からにしよう。大丈夫？"}, {"code": "Q7F0F6", "set": "eval", "group": "f16701", "background": "Aは研究室の先輩、Bは後輩。新歓のビラ配りを1時間する時刻を決めている。\nBは自分の手帳にだけ「明日は10時から13時までバイトがある」と書いている。AはBの手帳を見ておらず、Bから聞いたこともない。", "turns": [{"s": "A", "t": "明日、新歓のビラ配りを1時間やろう"}, {"s": "B", "t": "ビラ配りの開始時刻を決めましょう"}], "target": "じゃあ明日12時半からビラ配りしよう"}, {"code": "Q8F6D2", "set": "eval", "group": "e0aef8", "background": "AとBは同じゼミの学生。備品の買い出しに1時間行く時刻を決めている。\n前日、BはAも入っているグループチャットに「明日は13時から14時半まで就活の面接がある」と書き込み、Aはそれに「了解」と返信している。", "turns": [{"s": "A", "t": "今日、備品の買い出しに1時間行きませんか"}, {"s": "B", "t": "買い出しの開始時刻を決めましょう"}], "target": "では今日13時半から買い出しに行きましょう"}, {"code": "Q0FECA", "set": "eval", "group": "e0aef8", "background": "AとBは同じゼミの学生。備品の買い出しに1時間行く時刻を決めている。\n前日、BはAも入っているグループチャットに「明日は13時から14時半まで就活の面接がある」と書き込み、Aはそれに「了解」と返信している。", "turns": [{"s": "A", "t": "今日、備品の買い出しに1時間行きませんか"}, {"s": "B", "t": "買い出しの開始時刻を決めましょう"}], "target": "就活の面接が終わった後の15時半からなら買い出しに行けますか？"}, {"code": "Q7200D", "set": "eval", "group": "e0aef8", "background": "AとBは同じゼミの学生。備品の買い出しに1時間行く時刻を決めている。\nAが席を外している間に、Bはたまたま通りかかった知人Cと立ち話をし、「今日は13時から14時半まで就活の面接がある」と話した。Cはすぐに立ち去った。Aはその場におらず、戻ってきた後もこの話は出ていない。", "turns": [{"s": "A", "t": "今日、備品の買い出しに1時間行きませんか"}, {"s": "B", "t": "買い出しの開始時刻を決めましょう"}], "target": "では今日13時半から買い出しに行きましょう"}, {"code": "Q87B48", "set": "eval", "group": "0a7310", "background": "Aは研究室の後輩、Bは先輩。2時間カラオケに行く時刻を決めている。\n前日、BはAも入っているグループチャットに「明日は11時から12時半までゼミがある」と書き込み、Aはそれに「了解」と返信している。", "turns": [{"s": "A", "t": "今日、カラオケに行きませんか"}, {"s": "B", "t": "カラオケの開始時刻を決めよう"}], "target": "カラオケは今日11時半開始で決定にしますね"}, {"code": "Q8AEDE", "set": "eval", "group": "0a7310", "background": "Aは研究室の後輩、Bは先輩。2時間カラオケに行く時刻を決めている。\n前日、BはAも入っているグループチャットに「明日は11時から12時半までゼミがある」と書き込み、Aはそれに「了解」と返信している。", "turns": [{"s": "A", "t": "今日、カラオケに行きませんか"}, {"s": "B", "t": "カラオケの開始時刻を決めよう"}], "target": "ゼミが終わった後の14時からならカラオケに行けますか？"}, {"code": "QFE625", "set": "eval", "group": "0a7310", "background": "Aは研究室の後輩、Bは先輩。2時間カラオケに行く時刻を決めている。\nAが席を外している間に、Bはたまたま通りかかった知人Cと立ち話をし、「今日は11時から12時半までゼミがある」と話した。Cはすぐに立ち去った。Aはその場におらず、戻ってきた後もこの話は出ていない。", "turns": [{"s": "A", "t": "今日、カラオケに行きませんか"}, {"s": "B", "t": "カラオケの開始時刻を決めよう"}], "target": "カラオケは今日11時半開始で決定にしますね"}, {"code": "QE22E6", "set": "eval", "group": "1e0438", "background": "AとBは同じ授業のグループワークのメンバー。発表資料の読み合わせをオンラインで1時間する時刻を決めている。", "turns": [{"s": "A", "t": "Cさんから聞いたのですが、明日は16時から17時半まで通院があるんですよね？"}, {"s": "B", "t": "はい、そうなんです。読み合わせの開始時刻を決めましょう"}], "target": "では明日16時から読み合わせしましょう"}, {"code": "QD7DEB", "set": "eval", "group": "1e0438", "background": "AとBは同じ授業のグループワークのメンバー。発表資料の読み合わせをオンラインで1時間する時刻を決めている。", "turns": [{"s": "A", "t": "Cさんから聞いたのですが、明日は16時から17時半まで通院があるんですよね？"}, {"s": "B", "t": "はい、そうなんです。読み合わせの開始時刻を決めましょう"}], "target": "通院が終わった後の18時からなら読み合わせできますか？"}, {"code": "QA75B6", "set": "eval", "group": "1e0438", "background": "AとBは同じ授業のグループワークのメンバー。発表資料の読み合わせをオンラインで1時間する時刻を決めている。\nBは明日16時から17時半まで通院で、読み合わせはできない。この事情はBだけが知っている。Aには伝えておらず、Aが別の経路で知ったこともない。", "turns": [{"s": "A", "t": "明日、発表資料の読み合わせを1時間やりませんか"}, {"s": "B", "t": "読み合わせの開始時刻を決めましょう"}], "target": "では明日16時から読み合わせしましょう"}, {"code": "Q6E7E7", "set": "eval", "group": "0a551c", "background": "AとBは友人。一緒にランチに行く時刻を決めている。", "turns": [{"s": "B", "t": "明日は13時から15時まで塾講師のバイトで、ランチはできない"}, {"s": "A", "t": "分かった"}, {"s": "B", "t": "ランチの開始時刻を決めよう"}], "target": "ランチは明日13時半開始で決定にするね"}, {"code": "Q7A5F4", "set": "eval", "group": "0a551c", "background": "AとBは友人。一緒にランチに行く時刻を決めている。", "turns": [{"s": "B", "t": "明日は13時から15時まで塾講師のバイトで、ランチはできない"}, {"s": "A", "t": "分かった"}, {"s": "B", "t": "ランチの開始時刻を決めよう"}], "target": "塾講師のバイトの前の11時からにしよう。大丈夫？"}, {"code": "QE348E", "set": "eval", "group": "0a551c", "background": "AとBは友人。一緒にランチに行く時刻を決めている。\nBは自分の手帳にだけ「明日は13時から15時まで塾講師のバイトがある」と書いている。AはBの手帳を見ておらず、Bから聞いたこともない。", "turns": [{"s": "A", "t": "明日、一緒にランチ行こう"}, {"s": "B", "t": "ランチの開始時刻を決めよう"}], "target": "ランチは明日13時半開始で決定にするね"}, {"code": "QA2B34", "set": "eval", "group": "f45f3e", "background": "AとBは同じアルバイト先の同僚。Aの引っ越しの手伝いに来てもらう時刻を決めている。", "turns": [{"s": "A", "t": "Cさんから聞いたのですが、今日は10時から13時まで授業があるんですよね？"}, {"s": "B", "t": "はい、そうです。引っ越しの手伝いの開始時刻を決めましょう"}], "target": "引っ越しの手伝いは今日12時半開始で決定にしますね"}, {"code": "Q07C72", "set": "eval", "group": "f45f3e", "background": "AとBは同じアルバイト先の同僚。Aの引っ越しの手伝いに来てもらう時刻を決めている。", "turns": [{"s": "A", "t": "Cさんから聞いたのですが、今日は10時から13時まで授業があるんですよね？"}, {"s": "B", "t": "はい、そうです。引っ越しの手伝いの開始時刻を決めましょう"}], "target": "授業が終わった後の14時半からにしましょうか。大丈夫ですか？"}, {"code": "Q248D8", "set": "eval", "group": "f45f3e", "background": "AとBは同じアルバイト先の同僚。Aの引っ越しの手伝いに来てもらう時刻を決めている。\nBは今日10時から13時まで授業で、引っ越しの手伝いはできない。この事情はBだけが知っている。Aには伝えておらず、Aが別の経路で知ったこともない。", "turns": [{"s": "A", "t": "今日、引っ越しの手伝いをお願いできませんか"}, {"s": "B", "t": "引っ越しの手伝いの開始時刻を決めましょう"}], "target": "引っ越しの手伝いは今日12時半開始で決定にしますね"}, {"code": "Q90B92", "set": "eval", "group": "bac4a6", "background": "AとBは同じサークルの同期。ゼミ発表の練習を45分する時刻を決めている。", "turns": [{"s": "B", "t": "明日は12時から17時までバイトで、発表練習はできない"}, {"s": "A", "t": "そっか、了解"}, {"s": "B", "t": "発表練習の開始時刻を決めよう"}], "target": "じゃあ明日14時から発表練習しよう"}, {"code": "Q2FCAB", "set": "eval", "group": "bac4a6", "background": "AとBは同じサークルの同期。ゼミ発表の練習を45分する時刻を決めている。", "turns": [{"s": "B", "t": "明日は12時から17時までバイトで、発表練習はできない"}, {"s": "A", "t": "そっか、了解"}, {"s": "B", "t": "発表練習の開始時刻を決めよう"}], "target": "バイトが終わった後の18時からなら発表練習できる？"}, {"code": "QA43FB", "set": "eval", "group": "bac4a6", "background": "AとBは同じサークルの同期。ゼミ発表の練習を45分する時刻を決めている。\nAが席を外している間に、Bはたまたま通りかかった知人Cと立ち話をし、「明日は12時から17時までバイトがある」と話した。Cはすぐに立ち去った。Aはその場におらず、戻ってきた後もこの話は出ていない。", "turns": [{"s": "A", "t": "明日、発表練習を45分やろう"}, {"s": "B", "t": "発表練習の開始時刻を決めよう"}], "target": "じゃあ明日14時から発表練習しよう"}];
+const CRITERIA = "この課題での配慮不足とは、発話者Aが相手Bの時間上の制約を知っていると本文から確認できるにもかかわらず、その制約に反する予定を、必要な調整や確認をせず提案・決定することです。\n\n次の4条件がすべてそろう場合を「あり」とします。\n1. 制約が具体的：Bが参加できない時刻や、移動・作業に必要な時間が明示されている。\n2. Aの情報アクセスが確認できる：BがAに伝え、Aが応答した等の根拠がある。読者が背景説明で知っているだけでは不足。\n3. 対象発言が衝突する：提案・決定に従うと、その時間制約を満たせない。\n4. 衝突を解消する記述がない：最新の希望変更、例外への同意、事情を踏まえた確認・調整が示されていない。\n\nラベルは次の4つから1つを選んでください。\n- あり：上の4条件がそろう。\n- なし：Aが制約を知っていることが確認でき、発言が制約に適合する、または明示的な調整・同意がある。\n- 判定対象外：Bだけが事情を知り、Aには伝えていないと本文が明示している（Aは制約を知らない）。\n- 保留：誰が知るか不明、時刻が曖昧、提案の強さで解釈が割れる等で、この定義では決められない。\n\n注意：\n- Aが知らない事情を、読者が背景説明で知っていても、Aの知識にはしないでください。\n- 悪意・失念・理解不足など、Aの内面の原因は推測しないでください。\n- 「分かった」のような短い口調でも、予定が制約に適合すれば、それだけで配慮不足にしないでください。敬語でも、既知の制約と衝突すれば「あり」になり得ます。\n- Bが後から時間を変更した場合は、Aに伝わった最新の条件を使ってください。\n- 事情を認めたうえで変更を確認する発言は、制約を無視した発言と区別してください。";
+const SETS = [
+  { key: "pilot", name: "予備" },
+  { key: "eval", name: "本番" },
+];
+const CHOICES = [
+  { v: "あり", d: "Aは事情を知っていて、それに反する予定を、確認や調整なしに決めた・提案した" },
+  { v: "なし", d: "Aは事情を知っていて、発言が事情に合っている（または確認・調整している）" },
+  { v: "判定対象外", d: "Bだけが事情を知っていて、Aには伝わっていないと書かれている" },
+  { v: "保留", d: "情報があいまいで、この基準では決められない" },
+];
+const BY_CODE = Object.fromEntries(ITEMS.map(it => [it.code, it]));
+const LOCAL_KEY = "conversation-survey-v1";
+
+let db = null, user = null, uid = null, mode = "local", isOwner = false;
+let state = null;       // { name, order, answers, idx, done, startedAt, updatedAt }
+let saving = false, dirty = false;
+const app = document.getElementById("app");
+
+// ---------------------------------------------------------------- 並び順
+function hashStr(s) { let h = 2166136261; for (const c of s) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { let a = seed; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function buildOrder(seedText) {
+  const r = rng(hashStr(seedText));
+  const order = [];
+  for (const set of SETS) {
+    const pool = ITEMS.filter(it => it.set === set.key);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const out = [];
+    while (pool.length) {   // 同じ場面の別パターンが続かないようにする
+      const last = out.length ? out[out.length - 1].group : null;
+      let k = pool.findIndex(it => it.group !== last);
+      if (k < 0) k = 0;
+      out.push(pool.splice(k, 1)[0]);
+    }
+    order.push(...out.map(it => it.code));
+  }
+  return order;
+}
+
+// ---------------------------------------------------------------- 保存
+function setSave(text, cls) { const el = document.getElementById("save-state"); el.textContent = text; el.className = "save-state" + (cls ? " " + cls : ""); }
+function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(state)); } catch (e) {} }
+function loadLocal() { try { const s = localStorage.getItem(LOCAL_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+
+async function persist() {
+  state.updatedAt = new Date().toISOString();
+  saveLocal();
+  if (mode !== "db") { setSave("この端末に一時保存しました"); return; }
+  dirty = true;
+  if (saving) return;
+  saving = true;
+  while (dirty) {
+    dirty = false;
+    try {
+      await db.doc("answers/" + uid).set(JSON.parse(JSON.stringify(state)));
+      setSave("保存しました", "ok");
+    } catch (e) {
+      if (e && (e.code === "invalid_argument" || e.code === "revoked" || e.code === "not_granted")) {
+        mode = "local";
+        setSave("この端末に一時保存しています（最後に回答コードを送ってください）", "err");
+        break;
+      }
+      setSave("保存できませんでした。通信を確認してください", "err");
+      await new Promise(r => setTimeout(r, 1500 + Math.random() * 1500));
+      dirty = true;
+    }
+  }
+  saving = false;
+}
+
+let noteTimer = null;
+function persistSoon() { clearTimeout(noteTimer); noteTimer = setTimeout(persist, 800); }
+
+// ---------------------------------------------------------------- 初期化
+async function init() {
+  render();
+  const use = window.claude && window.claude.use ? window.claude.use.bind(window.claude) : null;
+  if (!use) { setSave("この端末に一時保存します"); return; }
+  const [d, u] = await Promise.all([use("db"), use("user")]);
+  user = u;
+  if (u) {
+    try { isOwner = await u.isOwner(); } catch (e) {}
+    try { uid = await u.id(); } catch (e) {}
+  }
+  let writable = true;
+  if (u) { try { const c = await u.can("data.write"); if (c === false) writable = false; } catch (e) {} }
+  if (d && uid) {
+    db = d;
+    if (writable) mode = "db";
+    try {
+      const snap = await db.doc("answers/" + uid).get();
+      if (snap.exists && (!state || !state.startedAt)) { state = JSON.parse(JSON.stringify(snap.data())); }
+    } catch (e) {}
+  }
+  setSave(mode === "db" ? "回答は自動で保存されます" : "この端末に一時保存します（最後に回答コードを送ってください）", mode === "db" ? "ok" : "");
+  render();
+}
+
+// ---------------------------------------------------------------- 画面
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function setProgress() {
+  const p = document.getElementById("progress");
+  if (!state || !state.order || state.done) { p.hidden = true; return; }
+  p.hidden = false;
+  const n = state.order.length, answered = state.order.filter(c => state.answers[c]).length;
+  const cur = BY_CODE[state.order[Math.min(state.idx, n - 1)]];
+  const setInfo = SETS.find(s => s.key === cur.set);
+  const inSet = state.order.filter(c => BY_CODE[c].set === cur.set);
+  document.getElementById("progress-set").textContent = `${setInfo.name}（${inSet.indexOf(cur.code) + 1} / ${inSet.length}）`;
+  document.getElementById("progress-count").textContent = `回答済み ${answered} / ${n}`;
+  document.getElementById("progress-fill").style.width = (answered / n * 100) + "%";
+  const bar = document.getElementById("progress-bar");
+  bar.setAttribute("aria-valuemax", n); bar.setAttribute("aria-valuenow", answered);
+}
+
+function render() {
+  setProgress();
+  if (!state || !state.startedAt) return renderIntro();
+  if (state.view === "owner") return renderOwner();
+  if (state.done) return renderDone();
+  if (state.breakShown === false) return renderBreak();
+  return renderQuestion();
+}
+
+function renderIntro() {
+  const resume = loadLocal();
+  const nPilot = ITEMS.filter(i => i.set === "pilot").length, nEval = ITEMS.filter(i => i.set === "eval").length;
+  app.innerHTML = `
+    <section class="scene">
+      <p class="eyebrow">ご協力のお願い</p>
+      <h1>短い会話を読んで、1つの発言を判定してください</h1>
+      <p class="lead">予定を決める短い会話を読み、Aの「判定する発言」について、4つの選択肢から1つを選びます。卒業研究で、AIの判定と比べるための「人間の判断」として使います。</p>
+    </section>
+    <section class="panel tint">
+      <h2 style="font-size:1.05rem">回答の流れ</h2>
+      <ul class="rules">
+        <li>予備 ${nPilot}件 → 本番 ${nEval}件、合計 ${nPilot + nEval}件です（目安 40分〜1時間）。</li>
+        <li>途中でやめても、同じページを開けば続きから再開できます。</li>
+        <li>すべて答え終わると、ほかの回答者の判定と比べられます。</li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h2 style="font-size:1.05rem">お願い</h2>
+      <ul class="rules">
+        <li>ほかの人と相談せず、一人で判定してください。</li>
+        <li>本文に書かれていることだけで判断してください。登場人物の性格や気持ちを想像する必要はありません。</li>
+        <li>似た会話が出てきても、1件ずつ独立に判断してください。</li>
+        <li>迷ったときは、迷った点をメモ欄に書いてもらえると助かります。</li>
+      </ul>
+    </section>
+    <details class="criteria"><summary>判定基準を読む（はじめに一度お読みください）</summary><div class="body">${esc(CRITERIA)}</div></details>
+    <form class="field" id="start-form" novalidate>
+      <label for="name">お名前（ニックネーム可）<span class="req">必須</span></label>
+      <input class="text-input" id="name" autocomplete="nickname" maxlength="40" value="${esc((resume && resume.name) || "")}">
+      <span class="hint">研究者が誰の回答かを区別するためだけに使います。</span>
+      <span class="error-text" id="name-error" hidden>お名前を入力してください。</span>
+      <div class="actions" style="margin-top:.6rem">
+        <button class="btn" type="submit" id="start-btn">${resume && resume.startedAt ? "続きから再開する" : "回答をはじめる"}</button>
+        ${isOwner ? `<button class="btn text" type="button" id="owner-btn">回答状況を見る（研究者のみ）</button>` : ""}
+      </div>
+    </form>`;
+  document.getElementById("start-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("name").value.trim();
+    if (!name) { document.getElementById("name-error").hidden = false; document.getElementById("name").focus(); return; }
+    if (resume && resume.startedAt && resume.name === name) { state = resume; }
+    else { state = { name, order: buildOrder(name + "|" + (uid || "local")), answers: {}, idx: 0, done: false, startedAt: new Date().toISOString(), breakShown: null }; }
+    persist(); render(); window.scrollTo(0, 0);
+  });
+  const ob = document.getElementById("owner-btn");
+  if (ob) ob.addEventListener("click", () => { state = state || {}; state.view = "owner"; state.startedAt = state.startedAt || "owner"; render(); });
+}
+
+function renderQuestion() {
+  const n = state.order.length;
+  const code = state.order[state.idx];
+  const it = BY_CODE[code];
+  const ans = state.answers[code] || {};
+  const turns = it.turns.map(t => t.s === "N"
+    ? `<div class="turn N"><div class="bubble">${esc(t.t)}</div></div>`
+    : `<div class="turn ${t.s}"><span class="who" aria-label="${t.s}さん">${t.s}</span><div class="bubble">${esc(t.t)}</div></div>`).join("");
+  app.innerHTML = `
+    <article class="scene" aria-labelledby="qno">
+      <div class="qhead"><h1 class="qno" id="qno">第${state.idx + 1}問</h1><span class="qcode">${esc(code)}</span></div>
+      ${it.background ? `<div class="field"><span class="block-label">背景</span><div class="background">${esc(it.background)}</div></div>` : ""}
+      <div class="field"><span class="block-label">会話</span><div class="talk">${turns}</div></div>
+      <div class="target"><span class="block-label">判定する発言（A）</span><p>${esc(it.target)}</p></div>
+    </article>
+    <form id="q-form" class="scene" novalidate>
+      <fieldset>
+        <legend>この発言は、配慮不足にあたりますか？</legend>
+        ${CHOICES.map((c, i) => `
+          <div class="choice">
+            <input type="radio" name="label" id="c${i}" value="${c.v}" ${ans.label === c.v ? "checked" : ""}>
+            <label for="c${i}"><span class="dot" aria-hidden="true"></span><span><span class="t">${c.v}</span><span class="key" aria-hidden="true">${i + 1}</span><span class="d">${c.d}</span></span></label>
+          </div>`).join("")}
+      </fieldset>
+      <span class="error-text" id="q-error" hidden>選択肢を1つ選んでください。</span>
+      <div class="field">
+        <label for="note">根拠や迷った点（任意）</label>
+        <textarea id="note" maxlength="500" placeholder="例：Bが事前に伝えていて、Aも「分かった」と答えている">${esc(ans.note || "")}</textarea>
+      </div>
+      <details class="criteria"><summary>判定基準を見る</summary><div class="body">${esc(CRITERIA)}</div></details>
+      <div class="actions">
+        <button class="btn secondary" type="button" id="prev" ${state.idx === 0 ? "disabled" : ""}>前の問題</button>
+        <button class="btn" type="submit" id="next">${state.idx === n - 1 ? "回答を終える" : "次の問題へ"}</button>
+      </div>
+      <p class="hint">キーボードの 1〜4 で選び、Enter で次に進めます。</p>
+    </form>`;
+  const form = document.getElementById("q-form");
+  form.addEventListener("change", e => {
+    if (e.target.name === "label") {
+      state.answers[code] = { ...(state.answers[code] || {}), label: e.target.value, at: new Date().toISOString() };
+      document.getElementById("q-error").hidden = true;
+      setProgress(); persist();
+    }
+  });
+  document.getElementById("note").addEventListener("input", e => {
+    state.answers[code] = { ...(state.answers[code] || {}), note: e.target.value };
+    persistSoon();
+  });
+  document.getElementById("prev").addEventListener("click", () => { state.idx = Math.max(0, state.idx - 1); persist(); render(); window.scrollTo(0, 0); });
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    if (!state.answers[code] || !state.answers[code].label) { document.getElementById("q-error").hidden = false; return; }
+    const curSet = it.set;
+    if (state.idx === n - 1) { finish(); return; }
+    state.idx += 1;
+    if (BY_CODE[state.order[state.idx]].set !== curSet && !state.breakDone) state.breakShown = false;
+    persist(); render(); window.scrollTo(0, 0);
+  });
+}
+
+function renderBreak() {
+  app.innerHTML = `
+    <section class="scene">
+      <p class="eyebrow">予備が終わりました</p>
+      <h1>ここからは本番の${ITEMS.filter(i => i.set === "eval").length}件です</h1>
+      <p class="lead">回答は保存されています。少し休憩してから進んでも大丈夫です。進め方は予備と同じです。</p>
+      <div class="actions"><button class="btn" id="go">本番をはじめる</button></div>
+    </section>`;
+  document.getElementById("go").addEventListener("click", () => { state.breakShown = true; state.breakDone = true; persist(); render(); window.scrollTo(0, 0); });
+}
+
+async function finish() {
+  const missing = state.order.filter(c => !(state.answers[c] && state.answers[c].label));
+  if (missing.length) { state.idx = state.order.indexOf(missing[0]); render(); return; }
+  state.done = true; state.completedAt = new Date().toISOString();
+  await persist();
+  if (mode === "db") {
+    const answers = Object.fromEntries(state.order.map(c => [c, { label: state.answers[c].label, note: state.answers[c].note || "" }]));
+    try { await db.doc("revealed/" + uid).set({ name: state.name, answers, completedAt: state.completedAt }); } catch (e) {}
+  }
+  render(); window.scrollTo(0, 0);
+}
+
+async function renderDone() {
+  const code = JSON.stringify({ name: state.name, completedAt: state.completedAt, answers: Object.fromEntries(state.order.map(c => [c, state.answers[c]])) });
+  app.innerHTML = `
+    <section class="scene">
+      <p class="eyebrow">回答が完了しました</p>
+      <h1>ご協力ありがとうございました</h1>
+      <p class="lead">${esc(state.name)}さんの ${state.order.length}件の回答を記録しました。下で、ほかの回答者の判定と比べられます。</p>
+    </section>
+    ${mode === "db" ? "" : `
+    <section class="panel">
+      <div class="notice warn"><p>この端末では回答を研究者に自動で届けられませんでした。下の「回答コード」をコピーして、研究者に送ってください。</p></div>
+      <textarea class="codebox" id="code" readonly>${esc(code)}</textarea>
+      <div class="actions"><button class="btn" id="copy">回答コードをコピー</button><span class="hint" id="copy-msg" aria-live="polite"></span></div>
+    </section>`}
+    <section class="scene" id="compare"><h2 style="font-size:1.15rem">ほかの回答者との比較</h2><p class="muted">読み込んでいます…</p></section>
+    <div class="actions"><button class="btn secondary" id="review">自分の回答を見直す</button></div>`;
+  const cb = document.getElementById("copy");
+  if (cb) cb.addEventListener("click", () => {
+    const ta = document.getElementById("code"), msg = document.getElementById("copy-msg");
+    const fallback = () => { ta.select(); msg.textContent = "選択しました。コピーしてください。"; };
+    try { navigator.clipboard.writeText(ta.value).then(() => { msg.textContent = "コピーしました"; }, fallback); } catch (e) { fallback(); }
+  });
+  document.getElementById("review").addEventListener("click", () => { state.done = false; state.idx = 0; render(); window.scrollTo(0, 0); });
+
+  const box = document.getElementById("compare");
+  let others = [];
+  if (db) {
+    try {
+      const snap = await db.collection("revealed").get();
+      others = snap.docs.filter(d => d.id !== uid).map(d => d.data()).filter(Boolean);
+    } catch (e) {}
+  }
+  if (!others.length) { box.innerHTML = `<h2 style="font-size:1.15rem">ほかの回答者との比較</h2><p class="muted">まだ比べられる回答がありません。ほかの人が回答を終えると、ここに表示されます。</p>`; return; }
+  const mine = c => state.answers[c] && state.answers[c].label;
+  const rate = o => { const n = state.order.filter(c => o.answers[c]).length; const m = state.order.filter(c => o.answers[c] && o.answers[c].label === mine(c)).length; return { m, n }; };
+  box.innerHTML = `
+    <h2 style="font-size:1.15rem">ほかの回答者との比較</h2>
+    <div class="stat-row">${others.map(o => { const r = rate(o); return `<div class="stat"><span class="small muted">${esc(o.name || "回答者")}さんとの一致</span><b>${r.n ? Math.round(r.m / r.n * 100) : 0}%</b><span class="small muted">${r.m} / ${r.n} 件</span></div>`; }).join("")}</div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>問</th><th>判定する発言</th><th>あなた</th>${others.map(o => `<th>${esc(o.name || "回答者")}</th>`).join("")}</tr></thead>
+      <tbody>${state.order.map((c, i) => `<tr>
+        <td class="num">${i + 1}</td><td>${esc(BY_CODE[c].target)}</td><td><b>${esc(mine(c))}</b></td>
+        ${others.map(o => { const a = o.answers[c]; if (!a) return "<td>－</td>"; const same = a.label === mine(c);
+          return `<td><span class="match ${same ? "y" : "n"}">${same ? "○" : "×"}</span> ${esc(a.label)}${a.note ? `<br><span class="small muted">${esc(a.note)}</span>` : ""}</td>`; }).join("")}
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+}
+
+async function renderOwner() {
+  app.innerHTML = `<section class="scene"><p class="eyebrow">研究者のみ</p><h1>回答状況</h1><p class="muted">読み込んでいます…</p></section>`;
+  let rows = [];
+  try { const snap = await db.collection("answers").get(); rows = snap.docs.map(d => ({ id: d.id, ...d.data() })); } catch (e) {}
+  const n = ITEMS.length;
+  app.innerHTML = `
+    <section class="scene"><p class="eyebrow">研究者のみ</p><h1>回答状況</h1>
+      <p class="muted">回答は Claude が直接読み取れます。ここでは進み具合だけを確認できます。</p></section>
+    ${rows.length ? `<div class="table-scroll"><table>
+      <thead><tr><th>名前</th><th>回答済み</th><th>状態</th><th>最終更新</th></tr></thead>
+      <tbody>${rows.map(r => `<tr><td>${esc(r.name || "")}</td><td class="num">${Object.values(r.answers || {}).filter(a => a && a.label).length} / ${n}</td>
+        <td>${r.done ? "完了" : "回答中"}</td><td class="num">${esc((r.updatedAt || "").replace("T", " ").slice(0, 16))}</td></tr>`).join("")}</tbody>
+    </table></div>` : `<p class="muted">まだ回答はありません。</p>`}
+    <div class="actions"><button class="btn secondary" id="back">最初の画面に戻る</button></div>`;
+  document.getElementById("back").addEventListener("click", () => { state = null; render(); });
+}
+
+document.addEventListener("keydown", e => {
+  if (!state || state.done || !state.startedAt || state.view === "owner" || state.breakShown === false) return;
+  if (e.target && (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT" && e.target.type === "text")) return;
+  const k = parseInt(e.key, 10);
+  if (k >= 1 && k <= 4) { const r = document.getElementById("c" + (k - 1)); if (r) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); r.focus(); } }
+});
+
+init();
+</script>
