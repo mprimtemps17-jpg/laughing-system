@@ -149,6 +149,14 @@ def human_survey(args) -> int:
     from .care.survey import build_survey
 
     sets = {"pilot": load_items(args.pilot), "eval": load_items(args.eval)}
+    if args.eval_ids:  # 本番から使う問題だけに絞る
+        keep = [x.strip() for x in args.eval_ids.split(",") if x.strip()]
+        by_id = {it.id: it for it in sets["eval"]}
+        missing = [x for x in keep if x not in by_id]
+        if missing:
+            print(f"見つからないID: {missing}", file=sys.stderr)
+            return 1
+        sets["eval"] = [by_id[x] for x in keep]
     out = build_survey(sets, Path(args.criteria).read_text(encoding="utf-8"), args.out)
     print(f"回答サイト: {out}（予備 {len(sets['pilot'])} 件 + 本番 {len(sets['eval'])} 件）")
     return 0
@@ -293,6 +301,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--eval", default="data/generated/time_eval_template.jsonl")
     s.add_argument("--criteria", default="configs/care/criteria_v0.2_time.md")
     s.add_argument("--out", default="human_eval/survey/index.html")
+    s.add_argument("--eval-ids", help="本番から使う問題のID（カンマ区切り）。省略時は全件")
     s.set_defaults(func=human_survey)
 
     gen = top.add_parser("gen", help="会話の生成").add_subparsers(dest="cmd", required=True)

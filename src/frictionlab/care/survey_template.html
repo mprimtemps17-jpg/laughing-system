@@ -194,7 +194,7 @@ const CHOICES = [
   { v: "保留", d: "情報があいまいで、この基準では決められない" },
 ];
 const BY_CODE = Object.fromEntries(ITEMS.map(it => [it.code, it]));
-const LOCAL_KEY = "conversation-survey-v2";
+const LOCAL_KEY = "conversation-survey-v3";
 
 let db = null, user = null, uid = null, mode = "local", isOwner = false;
 let state = null;       // { name, order, answers, idx, done, startedAt, updatedAt }
@@ -320,7 +320,7 @@ function renderIntro() {
     <section class="panel tint">
       <h2 style="font-size:1.05rem">回答の流れ</h2>
       <ul class="rules">
-        <li>予備 ${nPilot}件 → 本番 ${nEval}件、合計 ${nPilot + nEval}件です（目安 40分〜1時間）。</li>
+        <li>予備 ${nPilot}件 → 本番 ${nEval}件、合計 ${nPilot + nEval}件です（目安 ${Math.round((nPilot + nEval) * 1.5)}〜${(nPilot + nEval) * 2}分）。</li>
         <li>途中でやめても、同じページを開けば続きから再開できます。</li>
         <li>すべて答え終わると、ほかの回答者の判定と比べられます。</li>
       </ul>
